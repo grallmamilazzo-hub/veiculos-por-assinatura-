@@ -6,10 +6,11 @@
 <title>Controle de Assinaturas — Allma Milazzo</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
 <style>
+/* === VERSÃO: v4 | 2026-05-18 === */
 :root{
   --bg1:#ffffff;--bg2:#f7f6f2;--bg3:#edecea;
   --t1:#1a1a1a;--t2:#6b6b6b;--t3:#a0a0a0;
-  --b1:rgba(0,0,0,.07);--b2:rgba(0,0,0,.14);--b3:rgba(0,0,0,.22);
+  --b1:rgba(0,0,0,.07);--b2:rgba(0,0,0,.14);
   --rmd:8px;--rlg:12px;
   --dbg:rgba(226,75,74,.1);--dbr:rgba(226,75,74,.3);--dtx:#a32d2d;
   --wbg:rgba(186,117,23,.1);--wbr:rgba(186,117,23,.3);--wtx:#854f0b;
@@ -20,7 +21,7 @@
   :root{
     --bg1:#1e1e1e;--bg2:#272727;--bg3:#303030;
     --t1:#f0f0f0;--t2:#a0a0a0;--t3:#666;
-    --b1:rgba(255,255,255,.07);--b2:rgba(255,255,255,.13);--b3:rgba(255,255,255,.22);
+    --b1:rgba(255,255,255,.07);--b2:rgba(255,255,255,.13);
     --dbg:rgba(226,75,74,.15);--dbr:rgba(226,75,74,.35);--dtx:#f09595;
     --wbg:rgba(186,117,23,.15);--wbr:rgba(186,117,23,.35);--wtx:#ef9f27;
     --sbg:rgba(99,153,34,.15);--sbr:rgba(99,153,34,.35);--stx:#c0dd97;
@@ -42,6 +43,8 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg2);color:
 .btnp:hover{background:#0c447c}
 .btns{background:#1D9E75;color:#fff;border-color:#1D9E75}
 .btns:hover{background:#0f6e56}
+.btn-edit{padding:3px 8px;font-size:11px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t2);cursor:pointer;display:inline-flex;align-items:center;gap:3px;font-family:inherit}
+.btn-edit:hover{background:var(--wbg);color:var(--wtx);border-color:var(--wbr)}
 /* LAYOUT */
 .wrap{max-width:1280px;margin:0 auto;padding:18px 28px}
 /* PERIOD BAR */
@@ -57,8 +60,9 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg2);color:
 .val-list{font-size:12px;color:var(--wtx);max-height:130px;overflow-y:auto;margin-bottom:12px;padding-left:4px}
 .val-list li{margin-bottom:4px;list-style:disc;margin-left:16px}
 .val-acts{display:flex;gap:8px}
-/* SUCCESS */
+/* SUCCESS / EDIT MODE */
 .success-bar{background:var(--sbg);border:0.5px solid var(--sbr);color:var(--stx);border-radius:var(--rmd);padding:10px 14px;font-size:12px;margin-bottom:12px;display:none;align-items:center;gap:7px}
+.edit-mode-bar{background:var(--wbg);border:0.5px solid var(--wbr);color:var(--wtx);border-radius:var(--rmd);padding:10px 14px;font-size:12px;margin-bottom:12px;display:none;align-items:center;gap:7px;justify-content:space-between}
 /* TABS */
 .nav{display:flex;gap:4px;margin-bottom:0;border-bottom:0.5px solid var(--b2);padding-bottom:0}
 .tab{padding:9px 18px;border-radius:var(--rmd) var(--rmd) 0 0;border:0.5px solid transparent;border-bottom:none;font-size:13px;cursor:pointer;background:transparent;color:var(--t2);margin-bottom:-0.5px;display:inline-flex;align-items:center;gap:6px;transition:background .15s;font-family:inherit}
@@ -70,11 +74,11 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg2);color:
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:1.4rem}
 .card{background:var(--bg1);border-radius:var(--rlg);border:0.5px solid var(--b1);padding:14px 16px}
 .card .lbl{font-size:11px;color:var(--t3);margin-bottom:4px}
-.card .val{font-size:22px;font-weight:500;color:var(--t1);line-height:1.2}
+.card .val{font-size:20px;font-weight:500;color:var(--t1);line-height:1.2}
 .card .sub{font-size:11px;color:var(--t2);margin-top:4px}
-.card .split{display:flex;gap:20px;margin-top:9px;padding-top:9px;border-top:0.5px solid var(--b1)}
+.card .split{display:flex;gap:16px;margin-top:9px;padding-top:9px;border-top:0.5px solid var(--b1);flex-wrap:wrap}
 .card .split span{font-size:11px;color:var(--t2)}
-.card .split strong{color:var(--t1);font-weight:500;display:block;font-size:13px;margin-top:2px}
+.card .split strong{color:var(--t1);font-weight:500;display:block;font-size:12px;margin-top:2px}
 .card2{grid-column:span 2}
 /* CHARTS */
 .crow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem}
@@ -152,15 +156,21 @@ tr.rw td{background:rgba(186,117,23,.07)}
 </header>
 
 <div class="wrap">
+  <!-- BANNERS -->
   <div id="success-bar" class="success-bar"><i class="ti ti-circle-check"></i><span id="success-msg"></span></div>
+  <div id="edit-mode-bar" class="edit-mode-bar">
+    <span><i class="ti ti-pencil"></i> <strong>Modo edição</strong> — editando contrato <span id="edit-id-label"></span></span>
+    <button class="btn" onclick="cancelEdit()"><i class="ti ti-x"></i> Cancelar edição</button>
+  </div>
   <div id="val-area"></div>
-  <div id="src-lbl" class="src-lbl"><i class="ti ti-database"></i> Dados fictícios — importe seu arquivo Excel/CSV para atualizar</div>
+  <div id="src-lbl" class="src-lbl"><i class="ti ti-database"></i> Nenhum dado carregado — importe seu Excel/CSV ou cadastre contratos</div>
 
+  <!-- TABS -->
   <div class="nav">
     <button class="tab active" onclick="swTab('gestao',this)"><i class="ti ti-chart-bar"></i> Gestão</button>
     <button class="tab" onclick="swTab('operacional',this)"><i class="ti ti-list-details"></i> Operacional</button>
     <button class="tab" onclick="swTab('analitico',this)"><i class="ti ti-chart-dots"></i> Analítico</button>
-    <button class="tab" onclick="swTab('cadastro',this)"><i class="ti ti-plus"></i> Cadastro</button>
+    <button class="tab" id="tab-cadastro" onclick="swTab('cadastro',this)"><i class="ti ti-plus"></i> Cadastro</button>
   </div>
 
   <div id="period-bar" class="period-bar">
@@ -185,6 +195,16 @@ tr.rw td{background:rgba(186,117,23,.07)}
         </div>
       </div>
       <div class="card"><div class="lbl">Vencem em 60 dias</div><div class="val" id="k-venc">—</div><div class="sub">contratos ativos</div></div>
+      <!-- CARD TOTAL DO PLANO v4 -->
+      <div class="card card2">
+        <div class="lbl">Valor total dos planos contratados</div>
+        <div class="val" id="k-total-plano">—</div>
+        <div class="sub">soma de (meses × mensalidade) de todos os contratos</div>
+        <div class="split">
+          <span><span>Comissão indicada</span><strong id="k-total-com">—</strong></span>
+          <span><span>Qtd. veículos</span><strong id="k-total-veic">—</strong></span>
+        </div>
+      </div>
     </div>
     <div class="crow">
       <div class="cbox"><div class="ch-t">Contratos por fornecedor</div><div class="leg" id="lg-forn"></div><div style="position:relative;height:175px"><canvas id="cForn" role="img" aria-label="Por fornecedor"></canvas></div></div>
@@ -200,19 +220,27 @@ tr.rw td{background:rgba(186,117,23,.07)}
   <div id="operacional" class="view">
     <div id="alerts"></div>
     <div class="filt">
-      <select id="fs" onchange="renderTbl()"><option value="">Todos os status</option><option>Ativo</option><option>Aguardando Entrega</option><option>Encerrado</option><option>Cancelado</option></select>
+      <select id="fs" onchange="renderTbl()"><option value="">Todos os status</option><option>Assinado</option><option>Cancelado</option><option>Aguardando Entrega</option><option>Encerrado</option></select>
       <select id="ff" onchange="renderTbl()"><option value="">Todos os fornecedores</option></select>
       <select id="ft" onchange="renderTbl()"><option value="">PF / PJ</option><option value="PF">Pessoa Física</option><option value="PJ">Pessoa Jurídica</option></select>
     </div>
     <div class="tw">
       <table>
         <thead><tr>
-          <th style="width:95px">Contrato</th><th style="width:140px">Cliente</th>
-          <th style="width:105px">Fornecedor</th><th style="width:42px">Tipo</th>
-          <th style="width:130px">Modelo</th><th style="width:80px">Status</th>
-          <th style="width:105px">Progresso</th><th style="width:52px">Resta</th>
-          <th style="width:82px">Vl. Mensal</th><th style="width:90px">Comissão</th>
-          <th style="width:95px">Responsável</th><th style="width:85px">Desfecho</th>
+          <th style="width:88px">Contrato</th>
+          <th style="width:130px">Cliente</th>
+          <th style="width:95px">Fornecedor</th>
+          <th style="width:36px">Tipo</th>
+          <th style="width:115px">Modelo</th>
+          <th style="width:42px">Qtd</th>
+          <th style="width:72px">Status</th>
+          <th style="width:95px">Progresso</th>
+          <th style="width:48px">Resta</th>
+          <th style="width:78px">Vl. Mensal</th>
+          <th style="width:85px">Comissão</th>
+          <th style="width:85px">Responsável</th>
+          <th style="width:70px">Desfecho</th>
+          <th style="width:55px">Ação</th>
         </tr></thead>
         <tbody id="tbody"></tbody>
       </table>
@@ -243,10 +271,11 @@ tr.rw td{background:rgba(186,117,23,.07)}
   <div id="cadastro" class="view">
     <div class="form-wrap">
 
+      <!-- SEÇÃO: CONTRATO -->
       <div class="fsec">
         <div class="fsec-t">Dados do contrato</div>
         <div class="fg-grid">
-          <div class="fg"><label>ID Contrato</label><input id="f-id" placeholder="Ex: ASS-013 (deixe vazio para gerar automaticamente)"></div>
+          <div class="fg"><label>ID Contrato</label><input id="f-id" placeholder="Deixe vazio para gerar automaticamente"></div>
           <div class="fg"><label>Fornecedor *</label>
             <select id="f-forn" onchange="toggleOutroForn(this)">
               <option value="">Selecione...</option>
@@ -257,20 +286,31 @@ tr.rw td{background:rgba(186,117,23,.07)}
           <div class="fg"><label>Tipo de pessoa *</label>
             <select id="f-tipo"><option value="">Selecione...</option><option value="PF">Pessoa Física</option><option value="PJ">Pessoa Jurídica</option></select>
           </div>
+          <!-- STATUS: apenas Assinado ou Cancelado (v4) -->
           <div class="fg"><label>Status *</label>
-            <select id="f-status"><option value="">Selecione...</option><option>Ativo</option><option>Aguardando Entrega</option><option>Encerrado</option><option>Cancelado</option></select>
+            <select id="f-status"><option value="">Selecione...</option><option value="Assinado">Assinado</option><option value="Cancelado">Cancelado</option></select>
           </div>
           <div class="fg"><label>Prazo do plano (meses) *</label><input id="f-prazo" type="number" min="1" placeholder="Ex: 24"></div>
           <div class="fg"><label>Data de assinatura *</label><input id="f-assin" type="date"></div>
-          <div class="fg"><label>Valor mensal (R$) *</label><input id="f-valor" type="number" min="0" step="0.01" placeholder="Ex: 1890.00"></div>
-          <div class="fg"><label>Comissão (%)</label><input id="f-com" type="number" min="0" step="0.1" placeholder="Ex: 3"></div>
+          <div class="fg"><label>Valor mensal (R$) *</label><input id="f-valor" type="number" min="0" step="0.01" placeholder="Ex: 2999.00"></div>
+          <div class="fg"><label>Comissão (%)</label><input id="f-com" type="number" min="0" step="0.1" placeholder="Ex: 7"></div>
+          <div class="fg"><label>Qtd. de veículos *</label><input id="f-qtd" type="number" min="1" value="1" placeholder="Nº de carros neste contrato"></div>
           <div class="fg"><label>Desfecho previsto</label>
             <select id="f-desfecho"><option value="">Selecione...</option><option>Renovação</option><option>Devolução</option><option>A definir</option></select>
           </div>
-          <div class="fg"><label>Responsável interno</label><input id="f-resp" placeholder="Nome do responsável"></div>
+          <!-- RESPONSÁVEL: lista fixa (v4) -->
+          <div class="fg"><label>Responsável interno *</label>
+            <select id="f-resp">
+              <option value="">Selecione...</option>
+              <option>Gabriela L. Egídio</option>
+              <option>Ulisses dos Santos</option>
+              <option>Vendedor</option>
+            </select>
+          </div>
         </div>
       </div>
 
+      <!-- SEÇÃO: CLIENTE -->
       <div class="fsec">
         <div class="fsec-t">Dados do cliente</div>
         <div class="fg-grid">
@@ -279,6 +319,7 @@ tr.rw td{background:rgba(186,117,23,.07)}
         </div>
       </div>
 
+      <!-- SEÇÃO: VEÍCULO -->
       <div class="fsec">
         <div class="fsec-t">Dados do veículo</div>
         <div class="fg-grid">
@@ -289,16 +330,47 @@ tr.rw td{background:rgba(186,117,23,.07)}
         </div>
       </div>
 
+      <!-- SEÇÃO: ENTREGA -->
       <div class="fsec">
         <div class="fsec-t">Entrega</div>
         <div class="fg-grid">
           <div class="fg"><label>Data prevista de entrega</label><input id="f-entprev" type="date"></div>
           <div class="fg"><label>Data efetiva de entrega</label><input id="f-entef" type="date"></div>
           <div class="fg"><label>Tipo de entrega</label><input id="f-tipent" placeholder="Ex: Concessionária, Domicílio"></div>
-          <div class="fg"><label>Local da entrega</label><input id="f-locent" placeholder="Endereço ou unidade"></div>
+          <!-- LOCAL DE ENTREGA: lista de lojas (v4) -->
+          <div class="fg"><label>Local da entrega</label>
+            <select id="f-locent">
+              <option value="">Selecione a unidade...</option>
+              <option>Milazzo Fiat Jaú</option>
+              <option>Milazzo Fiat Marilia</option>
+              <option>Milazzo Fiat Bauru</option>
+              <option>Milazzo Fiat Botucatu</option>
+              <option>Milazzo Fiat Santos</option>
+              <option>Milazzo Fiat Brasília</option>
+              <option>Allma Jeep &amp; RAM SJRP</option>
+              <option>Allma Jeep SJRP Usados</option>
+              <option>Allma Jeep Votuporanga</option>
+              <option>Allma Jeep Barretos</option>
+              <option>Allma Peugeot &amp; Citroën Bauru</option>
+              <option>Allma Peugeot &amp; Citroën Ribeirão Preto</option>
+              <option>Allma Peugeot &amp; Citroën Marília</option>
+              <option>Allma BYD Araçatuba</option>
+              <option>Allma BYD Bauru</option>
+              <option>Allma BYD Botucatu</option>
+              <option>Allma BYD Marília</option>
+              <option>Allma BYD SJRP</option>
+              <option>Allma BYD Jaú</option>
+              <option>Allma Denza Ribeirão Preto</option>
+              <option>Allma Leapmotor Santos</option>
+              <option>Allma Volkswagen Bauru</option>
+              <option>Allma Volkswagen Orlândia</option>
+              <option>Local Externo</option>
+            </select>
+          </div>
         </div>
       </div>
 
+      <!-- SEÇÃO: ORIGEM -->
       <div class="fsec">
         <div class="fsec-t">Origem</div>
         <div class="fg-grid">
@@ -320,35 +392,22 @@ tr.rw td{background:rgba(186,117,23,.07)}
             <div class="fg"><label>Casa que gerou a indicação</label>
               <select id="f-ind-casa">
                 <option value="">Selecione a unidade...</option>
-                <option>Milazzo Fiat Jaú</option>
-                <option>Milazzo Fiat Marilia</option>
-                <option>Milazzo Fiat Bauru</option>
-                <option>Milazzo Fiat Botucatu</option>
-                <option>Milazzo Fiat Santos</option>
-                <option>Milazzo Fiat Brasília</option>
-                <option>Allma Jeep &amp; RAM SJRP</option>
-                <option>Allma Jeep SJRP Usados</option>
-                <option>Allma Jeep Votuporanga</option>
-                <option>Allma Jeep Barretos</option>
-                <option>Allma Peugeot &amp; Citroën Bauru</option>
-                <option>Allma Peugeot &amp; Citroën Ribeirão Preto</option>
-                <option>Allma Peugeot &amp; Citroën Marília</option>
-                <option>Allma BYD Araçatuba</option>
-                <option>Allma BYD Bauru</option>
-                <option>Allma BYD Botucatu</option>
-                <option>Allma BYD Marília</option>
-                <option>Allma BYD SJRP</option>
-                <option>Allma BYD Jaú</option>
-                <option>Allma Denza Ribeirão Preto</option>
-                <option>Allma Leapmotor Santos</option>
-                <option>Allma Volkswagen Bauru</option>
-                <option>Allma Volkswagen Orlândia</option>
+                <option>Milazzo Fiat Jaú</option><option>Milazzo Fiat Marilia</option><option>Milazzo Fiat Bauru</option>
+                <option>Milazzo Fiat Botucatu</option><option>Milazzo Fiat Santos</option><option>Milazzo Fiat Brasília</option>
+                <option>Allma Jeep &amp; RAM SJRP</option><option>Allma Jeep SJRP Usados</option><option>Allma Jeep Votuporanga</option>
+                <option>Allma Jeep Barretos</option><option>Allma Peugeot &amp; Citroën Bauru</option>
+                <option>Allma Peugeot &amp; Citroën Ribeirão Preto</option><option>Allma Peugeot &amp; Citroën Marília</option>
+                <option>Allma BYD Araçatuba</option><option>Allma BYD Bauru</option><option>Allma BYD Botucatu</option>
+                <option>Allma BYD Marília</option><option>Allma BYD SJRP</option><option>Allma BYD Jaú</option>
+                <option>Allma Denza Ribeirão Preto</option><option>Allma Leapmotor Santos</option>
+                <option>Allma Volkswagen Bauru</option><option>Allma Volkswagen Orlândia</option>
               </select>
             </div>
           </div>
         </div>
       </div>
 
+      <!-- SEÇÃO: OBSERVAÇÕES -->
       <div class="fsec">
         <div class="fsec-t">Observações</div>
         <div class="fg-grid">
@@ -357,46 +416,36 @@ tr.rw td{background:rgba(186,117,23,.07)}
       </div>
 
       <div class="form-footer">
-        <button class="btn" onclick="clearForm()"><i class="ti ti-x"></i> Limpar formulário</button>
-        <button class="btn btns" onclick="saveContrato()"><i class="ti ti-device-floppy"></i> Salvar contrato</button>
+        <button class="btn" onclick="cancelEdit()"><i class="ti ti-x"></i> Cancelar</button>
+        <button class="btn btns" id="btn-save" onclick="saveContrato()"><i class="ti ti-device-floppy"></i> Salvar contrato</button>
       </div>
     </div>
   </div>
 
-  <div class="footer">Grupo Allma Milazzo &nbsp;·&nbsp; Dashboard de Assinaturas de Veículos &nbsp;·&nbsp; <span id="lastupd"></span></div>
+  <div class="footer">Grupo Allma Milazzo &nbsp;·&nbsp; Dashboard de Assinaturas de Veículos &nbsp;·&nbsp; v4 &nbsp;·&nbsp; <span id="lastupd"></span></div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-// =================== DADOS INICIAIS ===================
-let contratos=[
-  {id:'ASS-001',cliente:'Ricardo Almeida',cpf:'123.456.789-00',chassi:'',modelo:'Polo track',assinatura:'2026-01-10',prazo:24,entregaEfetiva:'2026-01-15',valorMensal:1290,fornecedor:'FLUA',tipo:'PF',comissaoPct:3,status:'Ativo',responsavel:'Fernanda Lima',desfecho:'Renovação',midia:'Instagram',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:false,nomeIndicador:'',casaIndicacao:'',observacoes:''},
-  {id:'ASS-002',cliente:'Tech Solutions Ltda',cpf:'12.345.678/0001-99',chassi:'',modelo:'T-cross comfortline',assinatura:'2026-01-05',prazo:36,entregaEfetiva:'2026-01-10',valorMensal:2450,fornecedor:'SIGN & DRIVE',tipo:'PJ',comissaoPct:4,status:'Ativo',responsavel:'Carlos Mota',desfecho:'Renovação',midia:'Indicação',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:true,nomeIndicador:'João Silva',casaIndicacao:'Allma BYD Bauru',observacoes:''},
-  {id:'ASS-003',cliente:'Patrícia Souza',cpf:'987.654.321-00',chassi:'',modelo:'Byd dolphin',assinatura:'2026-02-20',prazo:12,entregaEfetiva:'2026-02-25',valorMensal:3100,fornecedor:'BYD MAIS',tipo:'PF',comissaoPct:5,status:'Encerrado',responsavel:'Fernanda Lima',desfecho:'Devolução',midia:'Google',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:false,nomeIndicador:'',casaIndicacao:'',observacoes:''},
-  {id:'ASS-004',cliente:'Marcos Ribeiro',cpf:'321.654.987-11',chassi:'',modelo:'Nivus highline',assinatura:'2026-02-05',prazo:24,entregaEfetiva:'2026-02-10',valorMensal:1890,fornecedor:'ASSINE CAR',tipo:'PF',comissaoPct:3,status:'Ativo',responsavel:'Jonas Pereira',desfecho:'A definir',midia:'Facebook',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:false,nomeIndicador:'',casaIndicacao:'',observacoes:''},
-  {id:'ASS-005',cliente:'Global Transportes SA',cpf:'98.765.432/0001-10',chassi:'',modelo:'Amarok v6',assinatura:'2026-03-15',prazo:36,entregaEfetiva:'2026-03-20',valorMensal:5200,fornecedor:'FLUA',tipo:'PJ',comissaoPct:4,status:'Ativo',responsavel:'Carlos Mota',desfecho:'Renovação',midia:'Indicação',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:true,nomeIndicador:'Maria Paula',casaIndicacao:'Milazzo Fiat Bauru',observacoes:''},
-  {id:'ASS-006',cliente:'Ana Carolina Lima',cpf:'456.789.123-00',chassi:'',modelo:'Virtus gts',assinatura:'2026-03-10',prazo:24,entregaEfetiva:'2026-03-14',valorMensal:2100,fornecedor:'SIGN & DRIVE',tipo:'PF',comissaoPct:4,status:'Aguardando Entrega',responsavel:'Fernanda Lima',desfecho:'A definir',midia:'Instagram',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:false,nomeIndicador:'',casaIndicacao:'',observacoes:''},
-  {id:'ASS-007',cliente:'Construtora Norte ME',cpf:'55.444.333/0001-22',chassi:'',modelo:'Saveiro cabine dupla',assinatura:'2026-04-01',prazo:24,entregaEfetiva:'2026-04-05',valorMensal:1750,fornecedor:'ASSINE CAR',tipo:'PJ',comissaoPct:3,status:'Ativo',responsavel:'Jonas Pereira',desfecho:'Renovação',midia:'WhatsApp',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:false,nomeIndicador:'',casaIndicacao:'',observacoes:''},
-  {id:'ASS-008',cliente:'Gustavo Martins',cpf:'111.222.333-44',chassi:'',modelo:'Byd yuan plus',assinatura:'2026-04-20',prazo:36,entregaEfetiva:'2026-04-25',valorMensal:2800,fornecedor:'BYD MAIS',tipo:'PF',comissaoPct:5,status:'Ativo',responsavel:'Carlos Mota',desfecho:'A definir',midia:'Google',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:false,nomeIndicador:'',casaIndicacao:'',observacoes:''},
-  {id:'ASS-009',cliente:'Juliana Ferreira',cpf:'555.666.777-88',chassi:'',modelo:'T-cross 1.0 tsi',assinatura:'2026-05-01',prazo:12,entregaEfetiva:'2026-05-05',valorMensal:1650,fornecedor:'FLUA',tipo:'PF',comissaoPct:3,status:'Ativo',responsavel:'Fernanda Lima',desfecho:'Devolução',midia:'Facebook',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:false,nomeIndicador:'',casaIndicacao:'',observacoes:''},
-  {id:'ASS-010',cliente:'MedGroup Saúde Ltda',cpf:'77.888.999/0001-33',chassi:'',modelo:'Virtus exclusive',assinatura:'2026-05-10',prazo:36,entregaEfetiva:'2026-05-15',valorMensal:2250,fornecedor:'SIGN & DRIVE',tipo:'PJ',comissaoPct:4,status:'Cancelado',responsavel:'Jonas Pereira',desfecho:'Devolução',midia:'Indicação',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:false,nomeIndicador:'',casaIndicacao:'',observacoes:''},
-];
+// =================== DADOS (v4 — vazio por padrão) ===================
+let contratos = [];
 
 // =================== CONSTANTES ===================
-const KNOWNFORN=['FLUA','SIGN & DRIVE','BYD MAIS','ASSINE CAR'];
-const CF={'FLUA':'#378ADD','SIGN & DRIVE':'#1D9E75','BYD MAIS':'#EF9F27','ASSINE CAR':'#D4537E','Outro':'#888780'};
-const CS={'Ativo':'#639922','Aguardando Entrega':'#BA7517','Encerrado':'#888780','Cancelado':'#E24B4A'};
-const CT={'PF':'#378ADD','PJ':'#D85A30'};
-const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-const CH={};
-let selectedPeriod='';
-let pendingImport=null;
+const KNOWNFORN = ['FLUA','SIGN & DRIVE','BYD MAIS','ASSINE CAR'];
+const CF = {'FLUA':'#378ADD','SIGN & DRIVE':'#1D9E75','BYD MAIS':'#EF9F27','ASSINE CAR':'#D4537E','Outro':'#888780'};
+const CS = {'Assinado':'#639922','Cancelado':'#E24B4A','Aguardando Entrega':'#BA7517','Encerrado':'#888780','Ativo':'#639922'};
+const CT = {'PF':'#378ADD','PJ':'#D85A30'};
+const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const CH = {};
+let selectedPeriod = '';
+let pendingImport = null;
+let editId = null; // null = novo cadastro; string = edição de contrato existente
 
 // =================== UTILITÁRIOS ===================
 function addM(d,m){const r=new Date(d);r.setMonth(r.getMonth()+m);return r}
 function diffM(a,b){return(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth())}
-const hoje=()=>new Date();
+const hoje = () => new Date();
 function pct(c){const i=new Date(c.entregaEfetiva||c.assinatura);if(isNaN(i.getTime()))return 0;return Math.min(100,Math.max(0,Math.round(diffM(i,hoje())/Math.max(1,c.prazo)*100)));}
 function mRest(c){const i=new Date(c.entregaEfetiva||c.assinatura);if(isNaN(i.getTime()))return 0;return Math.max(0,diffM(hoje(),addM(i,c.prazo||1)));}
 function fmt(v){return'R$\u00a0'+Math.round(v).toLocaleString('pt-BR')}
@@ -407,28 +456,29 @@ function mkLeg(id,labels,colors){document.getElementById(id).innerHTML=labels.ma
 function mkPie(id,labels,data,colors){mkChart(id,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+ctx.raw}}}}});}
 function getFiltrado(){let d=contratos;if(selectedPeriod)d=d.filter(c=>(c.assinatura||'').startsWith(selectedPeriod));return d;}
 function fornGroup(c){return KNOWNFORN.includes(c.fornecedor)?c.fornecedor:'Outro';}
+function isAtivo(c){return c.status==='Assinado'||c.status==='Ativo';}
 function showSuccess(msg){const b=document.getElementById('success-bar');document.getElementById('success-msg').textContent=msg;b.style.display='flex';setTimeout(()=>b.style.display='none',4000);}
+function updSrcLbl(){
+  const el=document.getElementById('src-lbl');
+  if(contratos.length===0){el.innerHTML='<i class="ti ti-database"></i> Nenhum dado carregado — importe seu Excel/CSV ou cadastre contratos';}
+  else{el.innerHTML=`<i class="ti ti-circle-check"></i> ${contratos.length} contrato(s) carregado(s)`;}
+}
 
 // =================== FILTRO PERÍODO ===================
 function buildPeriodFilter(){
   const sel=document.getElementById('period-sel');
   const months=[{v:'',l:'Todos os períodos'}];
-  const start=new Date(2026,0);
-  const end=new Date();end.setMonth(end.getMonth()+6);
+  const start=new Date(2026,0);const end=new Date();end.setMonth(end.getMonth()+6);
   let cur=new Date(start);
   while(cur<=end){months.push({v:`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}`,l:`${MESES[cur.getMonth()]} ${cur.getFullYear()}`});cur.setMonth(cur.getMonth()+1);}
   sel.innerHTML=months.map(m=>`<option value="${m.v}">${m.l}</option>`).join('');
 }
-function onPeriodChange(v){
-  selectedPeriod=v;
-  document.getElementById('period-tag').textContent=v?'filtro ativo':'';
-  init();
-}
+function onPeriodChange(v){selectedPeriod=v;document.getElementById('period-tag').textContent=v?'filtro ativo':'';init();}
 
 // =================== KPIs ===================
 function calcKpis(){
   const d=getFiltrado();
-  const ativos=d.filter(c=>c.status==='Ativo');
+  const ativos=d.filter(c=>isAtivo(c));
   document.getElementById('k-ativ').textContent=ativos.length;
   document.getElementById('k-mrr').textContent=fmt(ativos.reduce((s,c)=>s+c.valorMensal,0));
   const com=d.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),0);
@@ -436,6 +486,13 @@ function calcKpis(){
   document.getElementById('k-com-pf').textContent=fmt(d.filter(c=>c.tipo==='PF').reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),0));
   document.getElementById('k-com-pj').textContent=fmt(d.filter(c=>c.tipo==='PJ').reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),0));
   document.getElementById('k-venc').textContent=ativos.filter(c=>mRest(c)<=2).length;
+  // Card total do plano (v4)
+  const totalPlano=d.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)),0);
+  const totalCom=d.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),0);
+  const totalVeic=d.reduce((s,c)=>s+(c.qtdCarros||1),0);
+  document.getElementById('k-total-plano').textContent=fmt(totalPlano);
+  document.getElementById('k-total-com').textContent=fmt(totalCom);
+  document.getElementById('k-total-veic').textContent=totalVeic+' veículo(s)';
 }
 
 // =================== GESTÃO CHARTS ===================
@@ -445,8 +502,8 @@ function buildGestao(){
   const fdata=fkeys.map(k=>d.filter(c=>fornGroup(c)===k).length);
   mkLeg('lg-forn',fkeys.map((k,i)=>k+' ('+fdata[i]+')'),fkeys.map(k=>CF[k]));
   mkPie('cForn',fkeys,fdata,fkeys.map(k=>CF[k]));
-  const skeys=Object.keys(CS);
-  const sdata=skeys.map(k=>d.filter(c=>c.status===k).length);
+  const skeys=Object.keys(CS).slice(0,4);
+  const sdata=skeys.map(k=>d.filter(c=>c.status===k||(k==='Assinado'&&c.status==='Ativo')).length);
   mkLeg('lg-stat',skeys.map((k,i)=>k+' ('+sdata[i]+')'),skeys.map(k=>CS[k]));
   mkPie('cStat',skeys,sdata,skeys.map(k=>CS[k]));
   const tkeys=Object.keys(CT);
@@ -493,7 +550,7 @@ function buildAnalitico(){
 
 // =================== ALERTAS ===================
 function renderAlerts(){
-  const ativos=getFiltrado().filter(c=>c.status==='Ativo');
+  const ativos=getFiltrado().filter(c=>isAtivo(c));
   const crit=ativos.filter(c=>mRest(c)<=1);
   const atenc=ativos.filter(c=>mRest(c)>1&&mRest(c)<=2);
   let h='';
@@ -504,33 +561,38 @@ function renderAlerts(){
 }
 
 // =================== TABELA ===================
-function badgeSt(s){const m={Ativo:'ba',Encerrado:'be','Aguardando Entrega':'bag',Cancelado:'bc'};return`<span class="badge ${m[s]||'be'}">${s}</span>`;}
+function badgeSt(s){
+  const m={'Assinado':'ba','Ativo':'ba','Encerrado':'be','Aguardando Entrega':'bag','Cancelado':'bc'};
+  return`<span class="badge ${m[s]||'be'}">${s==='Ativo'?'Assinado':s}</span>`;
+}
 function renderTbl(){
   const fs=document.getElementById('fs').value,ff=document.getElementById('ff').value,ft=document.getElementById('ft').value;
   const rows=getFiltrado().filter(c=>{
-    if(fs&&c.status!==fs)return false;
+    if(fs&&c.status!==fs&&!(fs==='Assinado'&&c.status==='Ativo'))return false;
     if(ff&&fornGroup(c)!==ff&&c.fornecedor!==ff)return false;
     if(ft&&c.tipo!==ft)return false;
     return true;
   });
   document.getElementById('tbody').innerHTML=rows.map(c=>{
     const p=pct(c),mr=mRest(c);
-    const cls=c.status==='Ativo'&&mr<=1?'rc':c.status==='Ativo'&&mr<=2?'rw':'';
+    const cls=isAtivo(c)&&mr<=1?'rc':isAtivo(c)&&mr<=2?'rw':'';
     const comR=Math.round(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100);
-    const indIcon=c.indicacao?` <i class="ti ti-users" title="Indicação: ${c.nomeIndicador} (${c.casaIndicacao})" style="color:#185FA5;font-size:11px"></i>`:'';
+    const indIcon=c.indicacao?` <i class="ti ti-users" title="Indicação: ${c.nomeIndicador||''} (${c.casaIndicacao||''})" style="color:#185FA5;font-size:11px"></i>`:'';
     return`<tr class="${cls}">
       <td title="${c.id}">${c.id}</td>
       <td title="${c.cliente}">${c.cliente}${indIcon}</td>
       <td>${fornGroup(c)}</td>
       <td><span class="badge" style="background:${c.tipo==='PF'?'#E6F1FB':'#FAECE7'};color:${c.tipo==='PF'?'#185FA5':'#993C1D'}">${c.tipo}</span></td>
       <td title="${normModel(c.modelo)}">${normModel(c.modelo)}</td>
+      <td style="text-align:center">${c.qtdCarros||1}</td>
       <td>${badgeSt(c.status)}</td>
       <td><div style="display:flex;align-items:center;gap:6px"><div class="pb"><div class="pf" style="width:${p}%"></div></div><span style="font-size:10px;color:var(--t2)">${p}%</span></div></td>
       <td style="font-size:11px;color:var(--t2)">${mr}m</td>
       <td>${fmt(c.valorMensal)}</td>
       <td>${c.comissaoPct||0}% · ${fmt(comR)}</td>
-      <td title="${c.responsavel}">${(c.responsavel||'').split(' ')[0]}</td>
+      <td title="${c.responsavel||''}">${(c.responsavel||'—').split(' ')[0]}</td>
       <td style="font-size:11px;color:var(--t2)">${c.desfecho||'—'}</td>
+      <td><button class="btn-edit" onclick="openEdit('${c.id}')"><i class="ti ti-pencil"></i> Editar</button></td>
     </tr>`;
   }).join('');
   document.getElementById('tcount').textContent=rows.length+' contrato(s) exibido(s)';
@@ -561,24 +623,20 @@ function handleImport(inp){
       function fmtD(d){if(!d)return'';if(d instanceof Date)return d.toISOString().split('T')[0];return String(d).split('T')[0];}
       const parsed=dataRows.map((row,idx)=>({
         id:gv(row,['id contrato','contrato','id'])||('IMP-'+(idx+1)),
-        cliente:gv(row,['cliente','nome'])||'',
-        cpf:gv(row,['cpf','cnpj'])||'',chassi:gv(row,['chassi'])||'',
-        modelo:normModel(String(gv(row,['modelo'])||'')),
-        assinatura:fmtD(gv(row,['assinatura'])),
-        prazo:parseInt(gv(row,['prazo']))||0,
+        cliente:gv(row,['cliente','nome'])||'',cpf:gv(row,['cpf','cnpj'])||'',
+        chassi:gv(row,['chassi'])||'',modelo:normModel(String(gv(row,['modelo'])||'')),
+        assinatura:fmtD(gv(row,['assinatura'])),prazo:parseInt(gv(row,['prazo']))||0,
         entregaEfetiva:fmtD(gv(row,['efetiva','entrega efetiva']))||fmtD(gv(row,['assinatura'])),
-        valorMensal:pNum(gv(row,['valor mensal','valor'])),
-        fornecedor:gv(row,['fornecedor'])||'',
+        valorMensal:pNum(gv(row,['valor mensal','valor'])),fornecedor:gv(row,['fornecedor'])||'',
         tipo:String(gv(row,['tipo de pessoa','tipo pessoa','pf/pj','tipo'])).toUpperCase().includes('J')?'PJ':'PF',
-        comissaoPct:pNum(gv(row,['comiss'])),
-        status:gv(row,['status'])||'Ativo',
-        responsavel:gv(row,['respons'])||'',
-        midia:gv(row,['midia','mídia','origem'])||'',
-        desfecho:gv(row,['desfecho'])||'A definir',
-        placa:gv(row,['placa'])||'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',
+        comissaoPct:pNum(gv(row,['comiss'])),status:gv(row,['status'])||'Assinado',
+        responsavel:gv(row,['respons'])||'',midia:gv(row,['midia','mídia','origem'])||'',
+        desfecho:gv(row,['desfecho'])||'A definir',placa:gv(row,['placa'])||'',
+        qtdCarros:parseInt(gv(row,['qtd','quantidade','carros']))||1,
+        cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',
         indicacao:false,nomeIndicador:'',casaIndicacao:'',observacoes:'',
       }));
-      const VALID_STATUS=['Ativo','Aguardando Entrega','Encerrado','Cancelado'];
+      const VALID_STATUS=['Assinado','Ativo','Cancelado','Aguardando Entrega','Encerrado'];
       const issues=[];
       parsed.forEach((c,i)=>{
         const ln=i+2;
@@ -588,7 +646,7 @@ function handleImport(inp){
         if(!c.valorMensal)issues.push(`Linha ${ln} (${c.id}): Valor mensal = 0 ou vazio`);
         if(!c.prazo)issues.push(`Linha ${ln} (${c.id}): Prazo = 0 ou vazio`);
         if(!c.assinatura)issues.push(`Linha ${ln} (${c.id}): Data de assinatura vazia`);
-        if(c.status&&!VALID_STATUS.includes(c.status))issues.push(`Linha ${ln} (${c.id}): Status "${c.status}" não reconhecido — será definido como "Ativo"`);
+        if(c.status&&!VALID_STATUS.includes(c.status))issues.push(`Linha ${ln} (${c.id}): Status "${c.status}" não reconhecido`);
         if(!c.entregaEfetiva)issues.push(`Linha ${ln} (${c.id}): Data de entrega efetiva vazia (afeta cálculo de progresso)`);
       });
       if(issues.length){
@@ -613,35 +671,87 @@ function cancelImport(){document.getElementById('val-area').innerHTML='';pending
 function applyImport(data,fileName){
   contratos=data;
   document.getElementById('val-area').innerHTML='';
-  document.getElementById('src-lbl').innerHTML=`<i class="ti ti-circle-check"></i> Importado: ${fileName} (${contratos.length} contratos)`;
-  updFF();init();showSuccess(`${contratos.length} contratos importados com sucesso!`);
+  updSrcLbl();updFF();init();
+  showSuccess(`${contratos.length} contratos importados com sucesso de "${fileName}"!`);
 }
 
 // =================== EXPORTAR EXCEL ===================
 function exportXLS(){
-  const heads=['ID Contrato','Cliente','CPF/CNPJ','Chassi','Modelo','Data Assinatura','Prazo (meses)','Entrega Efetiva','Valor Mensal R$','Fornecedor','Tipo Pessoa','Comissão %','Comissão R$','Status','Responsável','Origem Mídia','Desfecho','Placa','% Concluído','Meses Restantes','Indicação','Nome Indicador','Casa Indicação','Observações'];
-  const rows=contratos.map(c=>[c.id,c.cliente,c.cpf,c.chassi,normModel(c.modelo),c.assinatura,c.prazo,c.entregaEfetiva,c.valorMensal,c.fornecedor,c.tipo,c.comissaoPct,Math.round(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),c.status,c.responsavel,c.midia,c.desfecho,c.placa,pct(c),mRest(c),c.indicacao?'Sim':'Não',c.nomeIndicador||'',c.casaIndicacao||'',c.observacoes||'']);
+  const heads=['ID Contrato','Cliente','CPF/CNPJ','Chassi','Modelo','Data Assinatura','Prazo (meses)','Entrega Efetiva','Valor Mensal R$','Fornecedor','Tipo Pessoa','Comissão %','Comissão R$','Total Plano R$','Status','Responsável','Origem Mídia','Desfecho','Placa','Qtd Veículos','% Concluído','Meses Restantes','Indicação','Nome Indicador','Casa Indicação','Observações'];
+  const rows=contratos.map(c=>[
+    c.id,c.cliente,c.cpf,c.chassi,normModel(c.modelo),c.assinatura,c.prazo,c.entregaEfetiva,
+    c.valorMensal,c.fornecedor,c.tipo,c.comissaoPct,
+    Math.round(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),
+    Math.round(c.valorMensal*(c.prazo||1)),
+    c.status,c.responsavel,c.midia,c.desfecho,c.placa,c.qtdCarros||1,pct(c),mRest(c),
+    c.indicacao?'Sim':'Não',c.nomeIndicador||'',c.casaIndicacao||'',c.observacoes||''
+  ]);
   const ws=XLSX.utils.aoa_to_sheet([heads,...rows]);
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Contratos');
   XLSX.writeFile(wb,'contratos_allma_milazzo.xlsx');
 }
 
-// =================== EXPORTAR DASHBOARD HTML ===================
+// =================== EXPORTAR DASHBOARD ===================
 function exportDash(){
   const dataJson=JSON.stringify(contratos);
   const src=document.documentElement.outerHTML;
-  const updated=src.replace(/let contratos=\[[\s\S]*?\];/,'let contratos='+dataJson+';');
+  const updated=src.replace(/let contratos = \[[\s\S]*?\];/,'let contratos = '+dataJson+';');
   const blob=new Blob([updated],{type:'text/html;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='index.html';a.click();URL.revokeObjectURL(a.href);
 }
 
-// =================== CADASTRO - FORM ===================
+// =================== EDITAR CONTRATO (v4) ===================
+function openEdit(id){
+  const c=contratos.find(x=>x.id===id);if(!c)return;
+  editId=id;
+  // Preenche o formulário
+  setFV('f-id',c.id);
+  const fornKnown=KNOWNFORN.includes(c.fornecedor)?c.fornecedor:'Outro';
+  setFV('f-forn',fornKnown);
+  document.getElementById('fg-outro').style.display=fornKnown==='Outro'?'block':'none';
+  if(fornKnown==='Outro')setFV('f-forn-outro',c.fornecedor);
+  setFV('f-tipo',c.tipo);setFV('f-status',c.status==='Ativo'?'Assinado':c.status);
+  setFV('f-prazo',c.prazo);setFV('f-assin',c.assinatura);setFV('f-valor',c.valorMensal);
+  setFV('f-com',c.comissaoPct);setFV('f-qtd',c.qtdCarros||1);setFV('f-desfecho',c.desfecho);
+  setFV('f-resp',c.responsavel);setFV('f-cliente',c.cliente);setFV('f-cpf',c.cpf);
+  setFV('f-modelo',c.modelo);setFV('f-chassi',c.chassi);setFV('f-placa',c.placa);
+  setFV('f-cor',c.cor||'');setFV('f-entprev',c.dataPrevEntrega||'');setFV('f-entef',c.entregaEfetiva||'');
+  setFV('f-tipent',c.tipoEntrega||'');setFV('f-locent',c.localEntrega||'');
+  setFV('f-midia',c.midia);
+  document.getElementById('cb-ind').checked=!!c.indicacao;
+  document.getElementById('ind-fields').style.display=c.indicacao?'block':'none';
+  if(c.indicacao){setFV('f-ind-nome',c.nomeIndicador||'');setFV('f-ind-casa',c.casaIndicacao||'');}
+  setFV('f-obs',c.observacoes||'');
+  // Atualiza UI
+  document.getElementById('edit-mode-bar').style.display='flex';
+  document.getElementById('edit-id-label').textContent=id;
+  document.getElementById('btn-save').innerHTML='<i class="ti ti-refresh"></i> Atualizar contrato';
+  swTabById('cadastro');
+  document.getElementById('f-cliente').focus();
+  window.scrollTo(0,0);
+}
+function setFV(id,val){const el=document.getElementById(id);if(el)el.value=val!==undefined&&val!==null?val:'';}
+function cancelEdit(){
+  editId=null;
+  clearForm();
+  document.getElementById('edit-mode-bar').style.display='none';
+  document.getElementById('btn-save').innerHTML='<i class="ti ti-device-floppy"></i> Salvar contrato';
+}
+
+// =================== CADASTRO — FORMULÁRIO ===================
 function toggleInd(){document.getElementById('ind-fields').style.display=document.getElementById('cb-ind').checked?'block':'none';}
 function toggleOutroForn(sel){document.getElementById('fg-outro').style.display=sel.value==='Outro'?'block':'none';}
-const FORM_IDS=['f-id','f-forn','f-forn-outro','f-tipo','f-status','f-prazo','f-assin','f-valor','f-com','f-desfecho','f-resp','f-cliente','f-cpf','f-modelo','f-chassi','f-placa','f-cor','f-entprev','f-entef','f-tipent','f-locent','f-midia','f-ind-nome','f-ind-casa','f-obs'];
-function clearForm(){FORM_IDS.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('cb-ind').checked=false;document.getElementById('ind-fields').style.display='none';document.getElementById('fg-outro').style.display='none';}
+const FORM_IDS=['f-id','f-forn','f-forn-outro','f-tipo','f-status','f-prazo','f-assin','f-valor','f-com','f-qtd','f-desfecho','f-resp','f-cliente','f-cpf','f-modelo','f-chassi','f-placa','f-cor','f-entprev','f-entef','f-tipent','f-locent','f-midia','f-ind-nome','f-ind-casa','f-obs'];
+function clearForm(){
+  FORM_IDS.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const qtd=document.getElementById('f-qtd');if(qtd)qtd.value='1';
+  document.getElementById('cb-ind').checked=false;
+  document.getElementById('ind-fields').style.display='none';
+  document.getElementById('fg-outro').style.display='none';
+}
 function fgv(id){const el=document.getElementById(id);return el?el.value.trim():'';}
+
 function saveContrato(){
   const cliente=fgv('f-cliente'),modelo=fgv('f-modelo'),tipo=fgv('f-tipo'),status=fgv('f-status');
   const prazo=parseInt(fgv('f-prazo'))||0,valor=parseFloat(fgv('f-valor'))||0,assin=fgv('f-assin');
@@ -653,22 +763,32 @@ function saveContrato(){
   if(!valor)erros.push('Valor mensal');if(!assin)erros.push('Data de assinatura');
   if(erros.length){alert('Campos obrigatórios não preenchidos:\n• '+erros.join('\n• '));return;}
   const isInd=document.getElementById('cb-ind').checked;
-  const novoId=fgv('f-id')||('ASS-'+String(contratos.length+1).padStart(3,'0'));
-  contratos.push({
-    id:novoId,cliente,cpf:fgv('f-cpf'),chassi:fgv('f-chassi'),
-    modelo:normModel(modelo),assinatura:assin,prazo,
-    entregaEfetiva:fgv('f-entef')||assin,
+  const obj={
+    id: editId||fgv('f-id')||('ASS-'+String(contratos.length+1).padStart(3,'0')),
+    cliente,cpf:fgv('f-cpf'),chassi:fgv('f-chassi'),modelo:normModel(modelo),
+    assinatura:assin,prazo,entregaEfetiva:fgv('f-entef')||assin,
     valorMensal:valor,fornecedor:forn,tipo,
-    comissaoPct:parseFloat(fgv('f-com'))||0,
-    status,responsavel:fgv('f-resp'),midia:fgv('f-midia'),
+    comissaoPct:parseFloat(fgv('f-com'))||0,status,
+    responsavel:fgv('f-resp'),midia:fgv('f-midia'),
     desfecho:fgv('f-desfecho')||'A definir',
     placa:fgv('f-placa'),cor:fgv('f-cor'),
     tipoEntrega:fgv('f-tipent'),localEntrega:fgv('f-locent'),
     dataPrevEntrega:fgv('f-entprev'),
-    indicacao:isInd,nomeIndicador:isInd?fgv('f-ind-nome'):'',
-    casaIndicacao:isInd?fgv('f-ind-casa'):'',observacoes:fgv('f-obs'),
-  });
-  clearForm();updFF();init();showSuccess(`Contrato ${novoId} salvo com sucesso!`);
+    qtdCarros:parseInt(fgv('f-qtd'))||1,
+    indicacao:isInd,
+    nomeIndicador:isInd?fgv('f-ind-nome'):'',
+    casaIndicacao:isInd?fgv('f-ind-casa'):'',
+    observacoes:fgv('f-obs'),
+  };
+  if(editId){
+    const idx=contratos.findIndex(c=>c.id===editId);
+    if(idx>=0)contratos[idx]=obj;
+    showSuccess(`Contrato ${editId} atualizado com sucesso!`);
+  } else {
+    contratos.push(obj);
+    showSuccess(`Contrato ${obj.id} cadastrado com sucesso!`);
+  }
+  cancelEdit();updSrcLbl();updFF();init();
 }
 
 // =================== TROCA DE ABA ===================
@@ -679,11 +799,18 @@ function swTab(tab,btn){
   btn.classList.add('active');
   document.getElementById('period-bar').classList.toggle('hidden',tab==='cadastro');
 }
+function swTabById(tab){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+  document.getElementById('tab-cadastro').classList.add('active');
+  document.getElementById('period-bar').classList.add('hidden');
+}
 
 // =================== INIT ===================
 function init(){calcKpis();buildGestao();buildAnalitico();renderAlerts();renderTbl();}
 document.getElementById('lastupd').textContent='Aberto em '+new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-buildPeriodFilter();updFF();init();
+buildPeriodFilter();updFF();updSrcLbl();init();
 </script>
 </body>
 </html>
