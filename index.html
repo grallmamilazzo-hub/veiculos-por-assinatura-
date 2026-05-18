@@ -281,6 +281,90 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
   <div class="footer">Grupo Allma Milazzo · Assinaturas · v5 · <span id="lastupd"></span></div>
 </div>
 
+<!-- MODAL EDIÇÃO -->
+<div id="edit-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 12px">
+  <div id="edit-modal-box" style="background:var(--bg1);border-radius:var(--rlg);width:100%;max-width:760px;border:0.5px solid var(--b2);margin:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:0.5px solid var(--b1)">
+      <div style="font-size:14px;font-weight:600;color:var(--t1);display:flex;align-items:center;gap:8px">
+        <i class="ti ti-pencil" style="color:var(--ok)"></i>
+        Editando contrato <span id="em-id-label" style="color:var(--ok)"></span>
+      </div>
+      <button onclick="fecharModalEdit()" style="background:none;border:none;cursor:pointer;color:var(--t2);font-size:18px;padding:4px"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px" id="em-body">
+      <div style="grid-column:span 2;font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);padding-bottom:6px;border-bottom:0.5px solid var(--b1)">Contrato</div>
+      <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Fornecedor *</label>
+        <select id="em-forn" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit">
+          <option value="">Selecione...</option><option>FLUA</option><option>SIGN &amp; DRIVE</option><option>BYD MAIS</option><option>ASSINE CAR</option><option value="Outro">Outro</option>
+        </select></div>
+      <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Tipo de pessoa *</label>
+        <select id="em-tipo" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit">
+          <option value="">Selecione...</option><option value="PF">Pessoa Física</option><option value="PJ">Pessoa Jurídica</option>
+        </select></div>
+      <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Status *</label>
+        <select id="em-status" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit">
+          <option value="">Selecione...</option><option value="Assinado">Assinado</option><option value="Cancelado">Cancelado</option>
+        </select></div>
+      <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Responsável *</label>
+        <select id="em-resp" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit">
+          <option value="">Selecione...</option><option>Gabriela L. Egídio</option><option>Ulisses dos Santos</option><option>Vendedor</option>
+        </select></div>
+      <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Prazo (meses) *</label>
+        <input id="em-prazo" type="number" min="1" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit"></div>
+      <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Data de assinatura *</label>
+        <input id="em-assin" type="date" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit"></div>
+      <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Valor mensal (R$) *</label>
+        <input id="em-valor" type="text" inputmode="decimal" placeholder="Ex: 2.999,00" oninput="maskBRL(this)" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit">
+        <span style="font-size:10px;color:var(--t3);margin-top:2px;display:block">Formato: 2.999,00</span></div>
+      <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Comissão (%)</label>
+        <input id="em-com" type="number" min="0" step="0.1" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit"></div>
+      <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Qtd. veículos</label>
+        <input id="em-qtd" type="number" min="1" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit"></div>
+      <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Desfecho previsto</label>
+        <select id="em-desfecho" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit">
+          <option value="">Selecione...</option><option>Renovação</option><option>Devolução</option><option>A definir</option>
+        </select></div>
+
+      <div style="grid-column:span 2;font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);padding-bottom:6px;border-bottom:0.5px solid var(--b1);margin-top:4px">Cliente</div>
+      <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Nome completo *</label>
+        <input id="em-cliente" type="text" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit"></div>
+      <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">CPF / CNPJ</label>
+        <input id="em-cpf" type="text" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit"></div>
+
+      <div style="grid-column:span 2;font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);padding-bottom:6px;border-bottom:0.5px solid var(--b1);margin-top:4px">Veículo</div>
+      <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Modelo / Versão *</label>
+        <input id="em-modelo" type="text" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit"></div>
+      <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Placa</label>
+        <input id="em-placa" type="text" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit"></div>
+
+      <div style="grid-column:span 2;font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);padding-bottom:6px;border-bottom:0.5px solid var(--b1);margin-top:4px">Entrega</div>
+      <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Data efetiva de entrega</label>
+        <input id="em-entef" type="date" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit"></div>
+      <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Local da entrega</label>
+        <select id="em-locent" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit">
+          <option value="">Selecione...</option>
+          <option>Milazzo Fiat Jaú</option><option>Milazzo Fiat Marilia</option><option>Milazzo Fiat Bauru</option>
+          <option>Milazzo Fiat Botucatu</option><option>Milazzo Fiat Santos</option><option>Milazzo Fiat Brasília</option>
+          <option>Allma Jeep &amp; RAM SJRP</option><option>Allma Jeep SJRP Usados</option><option>Allma Jeep Votuporanga</option>
+          <option>Allma Jeep Barretos</option><option>Allma Peugeot &amp; Citroën Bauru</option>
+          <option>Allma Peugeot &amp; Citroën Ribeirão Preto</option><option>Allma Peugeot &amp; Citroën Marília</option>
+          <option>Allma BYD Araçatuba</option><option>Allma BYD Bauru</option><option>Allma BYD Botucatu</option>
+          <option>Allma BYD Marília</option><option>Allma BYD SJRP</option><option>Allma BYD Jaú</option>
+          <option>Allma Denza Ribeirão Preto</option><option>Allma Leapmotor Santos</option>
+          <option>Allma Volkswagen Bauru</option><option>Allma Volkswagen Orlândia</option>
+          <option>Local Externo</option>
+        </select></div>
+
+      <div style="grid-column:span 2"><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Observações</label>
+        <textarea id="em-obs" rows="2" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit;resize:vertical"></textarea></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;padding:14px 20px;border-top:0.5px solid var(--b1)">
+      <button onclick="fecharModalEdit()" style="padding:7px 16px;border-radius:var(--rmd);border:0.5px solid var(--b2);font-size:12px;cursor:pointer;background:var(--bg1);color:var(--t1);font-family:inherit;display:inline-flex;align-items:center;gap:5px"><i class="ti ti-x"></i> Cancelar</button>
+      <button onclick="salvarModalEdit()" style="padding:7px 16px;border-radius:var(--rmd);border:0.5px solid #1D9E75;font-size:12px;cursor:pointer;background:#1D9E75;color:#fff;font-family:inherit;display:inline-flex;align-items:center;gap:5px"><i class="ti ti-device-floppy"></i> Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL EXCLUSÃO -->
 <div id="del-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center">
   <div style="background:var(--bg1);border-radius:var(--rlg);padding:24px;max-width:340px;width:90%;border:0.5px solid var(--b2)">
@@ -435,7 +519,7 @@ function renderTbl(){
       <td style="font-size:10px;color:var(--t2)">${c.desfecho||'—'}</td>
       <td style="font-size:11px;${vencStyle}">${venc}</td>
       <td>
-        <button class="btn-edit" data-action="edit" data-id="${c.id}" title="Editar"><i class="ti ti-pencil"></i></button>
+        <button class="btn-edit" onclick="abrirModalEdit('${c.id}')" title="Editar"><i class="ti ti-pencil"></i></button>
         <button class="btn-edit" data-action="delete" data-id="${c.id}" title="Excluir" style="margin-left:3px;color:#E24B4A;border-color:rgba(226,75,74,.3)"><i class="ti ti-trash"></i></button>
       </td>
     </tr>`;
@@ -485,6 +569,95 @@ function fgv(id){const el=document.getElementById(id);return el?el.value.trim():
 function saveContrato(){const cliente=fgv('f-cliente'),modelo=fgv('f-modelo'),tipo=fgv('f-tipo'),status=fgv('f-status');const prazo=parseInt(fgv('f-prazo'))||0,valor=pNum(fgv('f-valor')),assin=fgv('f-assin');let forn=fgv('f-forn');if(forn==='Outro')forn=fgv('f-forn-outro')||'Outro';const erros=[];if(!cliente)erros.push('Nome do cliente');if(!modelo)erros.push('Modelo');if(!forn||forn==='')erros.push('Fornecedor');if(!tipo)erros.push('Tipo de pessoa');if(!status)erros.push('Status');if(!prazo)erros.push('Prazo');if(!valor)erros.push('Valor mensal');if(!assin)erros.push('Data de assinatura');if(erros.length){alert('Campos obrigatórios:\n• '+erros.join('\n• '));return;}const isInd=document.getElementById('cb-ind').checked;const obj={id:editId||fgv('f-id')||('ASS-'+String(contratos.length+1).padStart(3,'0')),cliente,cpf:fgv('f-cpf'),chassi:fgv('f-chassi'),modelo:normModel(modelo),assinatura:assin,prazo,entregaEfetiva:fgv('f-entef')||assin,valorMensal:valor,fornecedor:forn,tipo,comissaoPct:parseFloat(fgv('f-com'))||0,status,responsavel:fgv('f-resp'),midia:fgv('f-midia'),desfecho:fgv('f-desfecho')||'A definir',placa:fgv('f-placa'),cor:fgv('f-cor'),tipoEntrega:fgv('f-tipent'),localEntrega:fgv('f-locent'),dataPrevEntrega:fgv('f-entprev'),qtdCarros:parseInt(fgv('f-qtd'))||1,indicacao:isInd,nomeIndicador:isInd?fgv('f-ind-nome'):'',casaIndicacao:isInd?fgv('f-ind-casa'):'',observacoes:fgv('f-obs'),};if(editId){const idx=contratos.findIndex(c=>c.id===editId);if(idx>=0)contratos[idx]=obj;showSuccess(`Contrato ${editId} atualizado!`);}else{contratos.push(obj);showSuccess(`Contrato ${obj.id} cadastrado!`);}cancelEdit();updSrcLbl();updFF();saveLS();init();}
 
 /* EVENT DELEGATION para editar/excluir (resolve problema de onclick inline) */
+/* ========= MODAL EDIÇÃO ========= */
+function emGet(id){return document.getElementById(id);}
+function emVal(id){const el=emGet(id);return el?el.value.trim():'';}
+function emSet(id,v){const el=emGet(id);if(el)el.value=(v!==undefined&&v!==null)?v:'';}
+
+function abrirModalEdit(id){
+  const cont=contratos.find(x=>x.id===id);
+  if(!cont){alert('Contrato não encontrado: '+id);return;}
+  editId=id;
+  emGet('em-id-label').textContent=id;
+  // Preenche todos os campos
+  emSet('em-forn', KNOWNFORN.includes(cont.fornecedor)?cont.fornecedor:'Outro');
+  emSet('em-tipo', cont.tipo);
+  emSet('em-status', cont.status==='Ativo'?'Assinado':cont.status);
+  emSet('em-resp', cont.responsavel||'');
+  emSet('em-prazo', cont.prazo);
+  emSet('em-assin', cont.assinatura);
+  emSet('em-com', cont.comissaoPct);
+  emSet('em-qtd', cont.qtdCarros||1);
+  emSet('em-desfecho', cont.desfecho||'');
+  emSet('em-cliente', cont.cliente);
+  emSet('em-cpf', cont.cpf||'');
+  emSet('em-modelo', cont.modelo);
+  emSet('em-placa', cont.placa||'');
+  emSet('em-entef', cont.entregaEfetiva||'');
+  emSet('em-locent', cont.localEntrega||'');
+  emSet('em-obs', cont.observacoes||'');
+  // Valor formatado BRL
+  const elV=emGet('em-valor');
+  if(elV) elV.value=cont.valorMensal
+    ?cont.valorMensal.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})
+    :'';
+  // Exibir modal
+  emGet('edit-overlay').style.display='flex';
+  document.body.style.overflow='hidden';
+  setTimeout(()=>emGet('em-cliente').focus(),100);
+}
+
+function fecharModalEdit(){
+  emGet('edit-overlay').style.display='none';
+  document.body.style.overflow='';
+  editId=null;
+}
+
+function salvarModalEdit(){
+  const cliente=emVal('em-cliente');
+  const modelo=emVal('em-modelo');
+  const tipo=emVal('em-tipo');
+  const status=emVal('em-status');
+  const prazo=parseInt(emVal('em-prazo'))||0;
+  const valor=pNum(emVal('em-valor'));
+  const assin=emVal('em-assin');
+  const forn=emVal('em-forn');
+  const erros=[];
+  if(!cliente)erros.push('Nome do cliente');
+  if(!modelo)erros.push('Modelo');
+  if(!forn)erros.push('Fornecedor');
+  if(!tipo)erros.push('Tipo de pessoa');
+  if(!status)erros.push('Status');
+  if(!prazo)erros.push('Prazo');
+  if(!valor)erros.push('Valor mensal');
+  if(!assin)erros.push('Data de assinatura');
+  if(erros.length){alert('Campos obrigatórios:\n• '+erros.join('\n• '));return;}
+  // Encontrar e atualizar o contrato
+  const idx=contratos.findIndex(x=>x.id===editId);
+  if(idx<0){alert('Contrato não encontrado para atualizar.');return;}
+  const orig=contratos[idx];
+  contratos[idx]={
+    ...orig,
+    cliente, modelo:normModel(modelo), tipo, status,
+    fornecedor: KNOWNFORN.includes(forn)?forn:(emVal('em-forn')||forn),
+    prazo, assinatura:assin,
+    entregaEfetiva:emVal('em-entef')||assin,
+    valorMensal:valor,
+    comissaoPct:parseFloat(emVal('em-com'))||0,
+    qtdCarros:parseInt(emVal('em-qtd'))||1,
+    responsavel:emVal('em-resp'),
+    desfecho:emVal('em-desfecho')||'A definir',
+    cpf:emVal('em-cpf'),
+    placa:emVal('em-placa'),
+    localEntrega:emVal('em-locent'),
+    observacoes:emVal('em-obs'),
+  };
+  fecharModalEdit();
+  updSrcLbl();updFF();saveLS();init();
+  showSuccess('Contrato '+contratos[idx].id+' atualizado com sucesso!');
+}
+/* =============================== */
+
 document.addEventListener('click', function(e){
   const btn = e.target.closest('[data-action]');
   if(!btn) return;
