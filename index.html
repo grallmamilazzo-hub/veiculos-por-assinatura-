@@ -158,7 +158,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
         <th style="width:33px">Tipo</th><th style="width:108px">Modelo</th><th style="width:38px">Qtd</th>
         <th style="width:68px">Status</th><th style="width:88px">Progresso</th><th style="width:44px">Resta</th>
         <th style="width:74px">Vl. Mensal</th><th style="width:80px">Comissão</th><th style="width:88px">Responsável</th>
-        <th style="width:66px">Desfecho</th><th style="width:48px">Ação</th>
+        <th style="width:66px">Desfecho</th><th style="width:66px">Vencimento</th><th style="width:76px">Ação</th>
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table></div>
@@ -276,6 +276,21 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
   </div>
   <div class="footer">Grupo Allma Milazzo · Assinaturas · v5 · <span id="lastupd"></span></div>
 </div>
+
+<!-- MODAL EXCLUSÃO -->
+<div id="del-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--bg1);border-radius:var(--rlg);padding:24px;max-width:340px;width:90%;border:0.5px solid var(--b2)">
+    <div style="font-size:14px;font-weight:600;color:var(--t1);margin-bottom:6px"><i class="ti ti-trash" style="color:#E24B4A"></i> Excluir contrato</div>
+    <div style="font-size:12px;color:var(--t2);margin-bottom:14px">Contrato: <strong id="del-id-label"></strong><br>Esta ação não pode ser desfeita.</div>
+    <div style="font-size:11px;color:var(--t2);margin-bottom:6px;font-weight:500">Digite a senha para confirmar:</div>
+    <input id="del-senha" type="password" placeholder="Senha" style="width:100%;font-size:13px;padding:8px 10px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);margin-bottom:12px;font-family:inherit" onkeydown="if(event.key==='Enter')confirmDelete()">
+    <div id="del-err" style="font-size:11px;color:#E24B4A;margin-bottom:10px;display:none">Senha incorreta.</div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closeDeleteModal()"><i class="ti ti-x"></i> Cancelar</button>
+      <button class="btn" style="background:#E24B4A;color:#fff;border-color:#E24B4A" onclick="confirmDelete()"><i class="ti ti-trash"></i> Excluir</button>
+    </div>
+  </div>
+</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -306,8 +321,30 @@ function updLSBadge(){const ts=localStorage.getItem(LS_TS),el=document.getElemen
 function addM(d,m){const r=new Date(d);r.setMonth(r.getMonth()+m);return r}
 function diffM(a,b){return(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth())}
 const hoje=()=>new Date();
-function pct(c){const i=new Date(c.entregaEfetiva||c.assinatura);if(isNaN(i.getTime()))return 0;return Math.min(100,Math.max(0,Math.round(diffM(i,hoje())/Math.max(1,c.prazo)*100)));}
-function mRest(c){const i=new Date(c.entregaEfetiva||c.assinatura);if(isNaN(i.getTime()))return 0;return Math.max(0,diffM(hoje(),addM(i,c.prazo||1)));}
+function dataVenc(c){
+  // Vencimento = Data de Entrega Efetiva + Prazo em meses
+  const base=c.entregaEfetiva||c.dataPrevEntrega||c.assinatura;
+  if(!base)return null;
+  const i=new Date(base);
+  if(isNaN(i.getTime()))return null;
+  return addM(i,c.prazo||0);
+}
+function fmtVenc(c){
+  const v=dataVenc(c);
+  if(!v)return '—';
+  return v.toLocaleDateString('pt-BR',{month:'2-digit',year:'numeric'});
+}
+function pct(c){
+  const base=c.entregaEfetiva||c.dataPrevEntrega||c.assinatura;
+  const i=new Date(base);
+  if(isNaN(i.getTime()))return 0;
+  return Math.min(100,Math.max(0,Math.round(diffM(i,hoje())/Math.max(1,c.prazo)*100)));
+}
+function mRest(c){
+  const v=dataVenc(c);
+  if(!v)return 0;
+  return Math.max(0,diffM(hoje(),v));
+}
 function fmt(v){return'R$\u00a0'+Math.round(v).toLocaleString('pt-BR')}
 function fmtK(v){return v>=1000?'R$'+Math.round(v/1000)+'k':'R$'+Math.round(v)}
 function normModel(s){if(!s)return s;const t=s.trim();return t.charAt(0).toUpperCase()+t.slice(1).toLowerCase();}
@@ -340,7 +377,45 @@ function renderAlerts(){const ativos=getFiltrado().filter(c=>isAtivo(c));const c
 
 /* TABELA */
 function badgeSt(s){const m={'Assinado':'ba','Ativo':'ba','Encerrado':'be','Aguardando Entrega':'bag','Cancelado':'bc'};return`<span class="badge ${m[s]||'be'}">${s==='Ativo'?'Assinado':s}</span>`;}
-function renderTbl(){const fs=document.getElementById('fs').value,ff=document.getElementById('ff').value,ft=document.getElementById('ft').value,fr=document.getElementById('fr').value;const rows=getFiltrado().filter(c=>{if(fs&&c.status!==fs&&!(fs==='Assinado'&&c.status==='Ativo'))return false;if(ff&&fornGroup(c)!==ff&&c.fornecedor!==ff)return false;if(ft&&c.tipo!==ft)return false;if(fr&&c.responsavel!==fr)return false;return true;});document.getElementById('tbody').innerHTML=rows.map(c=>{const p=pct(c),mr=mRest(c);const cls=isAtivo(c)&&mr<=1?'rc':isAtivo(c)&&mr<=2?'rw':'';const comR=Math.round(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100);const indIcon=c.indicacao?` <i class="ti ti-users" title="Indicação: ${c.nomeIndicador||''}" style="color:#185FA5;font-size:10px"></i>`:'';return`<tr class="${cls}"><td title="${c.id}">${c.id}</td><td title="${c.cliente}">${c.cliente}${indIcon}</td><td>${fornGroup(c)}</td><td><span class="badge" style="background:${c.tipo==='PF'?'#E6F1FB':'#FAECE7'};color:${c.tipo==='PF'?'#185FA5':'#993C1D'}">${c.tipo}</span></td><td title="${normModel(c.modelo)}">${normModel(c.modelo)}</td><td style="text-align:center">${c.qtdCarros||1}</td><td>${badgeSt(c.status)}</td><td><div style="display:flex;align-items:center;gap:5px"><div class="pb"><div class="pf" style="width:${p}%"></div></div><span style="font-size:10px;color:var(--t2)">${p}%</span></div></td><td style="font-size:10px;color:var(--t2)">${mr}m</td><td>${fmt(c.valorMensal)}</td><td>${c.comissaoPct||0}% · ${fmt(comR)}</td><td title="${c.responsavel||''}">${(c.responsavel||'—').split(' ')[0]}</td><td style="font-size:10px;color:var(--t2)">${c.desfecho||'—'}</td><td><button class="btn-edit" onclick="openEdit('${c.id}')"><i class="ti ti-pencil"></i></button></td></tr>`;}).join('');document.getElementById('tcount').textContent=rows.length+' contrato(s)';}
+function renderTbl(){
+  const fs=document.getElementById('fs').value,ff=document.getElementById('ff').value,ft=document.getElementById('ft').value,fr=document.getElementById('fr').value;
+  const rows=getFiltrado().filter(c=>{
+    if(fs&&c.status!==fs&&!(fs==='Assinado'&&c.status==='Ativo'))return false;
+    if(ff&&fornGroup(c)!==ff&&c.fornecedor!==ff)return false;
+    if(ft&&c.tipo!==ft)return false;
+    if(fr&&c.responsavel!==fr)return false;
+    return true;
+  });
+  document.getElementById('tbody').innerHTML=rows.map(c=>{
+    const p=pct(c),mr=mRest(c);
+    const cls=isAtivo(c)&&mr<=1?'rc':isAtivo(c)&&mr<=2?'rw':'';
+    const comR=Math.round(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100);
+    const indIcon=c.indicacao?` <i class="ti ti-users" title="Indicação: ${c.nomeIndicador||''}" style="color:#185FA5;font-size:10px"></i>`:'';
+    const venc=fmtVenc(c);
+    const vencStyle=mr<=1?'color:#E24B4A;font-weight:600':mr<=2?'color:#BA7517;font-weight:500':'color:var(--t2)';
+    return`<tr class="${cls}">
+      <td title="${c.id}">${c.id}</td>
+      <td title="${c.cliente}">${c.cliente}${indIcon}</td>
+      <td>${fornGroup(c)}</td>
+      <td><span class="badge" style="background:${c.tipo==='PF'?'#E6F1FB':'#FAECE7'};color:${c.tipo==='PF'?'#185FA5':'#993C1D'}">${c.tipo}</span></td>
+      <td title="${normModel(c.modelo)}">${normModel(c.modelo)}</td>
+      <td style="text-align:center">${c.qtdCarros||1}</td>
+      <td>${badgeSt(c.status)}</td>
+      <td><div style="display:flex;align-items:center;gap:5px"><div class="pb"><div class="pf" style="width:${p}%"></div></div><span style="font-size:10px;color:var(--t2)">${p}%</span></div></td>
+      <td style="font-size:10px;color:var(--t2)">${mr>0?mr+'m':'—'}</td>
+      <td>${fmt(c.valorMensal)}</td>
+      <td>${c.comissaoPct||0}% · ${fmt(comR)}</td>
+      <td title="${c.responsavel||''}">${(c.responsavel||'—').split(' ')[0]}</td>
+      <td style="font-size:10px;color:var(--t2)">${c.desfecho||'—'}</td>
+      <td style="font-size:11px;${vencStyle}">${venc}</td>
+      <td>
+        <button class="btn-edit" data-action="edit" data-id="${c.id}" title="Editar"><i class="ti ti-pencil"></i></button>
+        <button class="btn-edit" data-action="delete" data-id="${c.id}" title="Excluir" style="margin-left:3px;color:#E24B4A;border-color:rgba(226,75,74,.3)"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+  document.getElementById('tcount').textContent=rows.length+' contrato(s)';
+}
 
 /* FILTRO FF */
 function updFF(){const sel=document.getElementById('ff');const uniq=[...new Set(contratos.map(c=>fornGroup(c)).filter(Boolean))].sort();sel.innerHTML='<option value="">Todos os fornecedores</option>'+uniq.map(f=>`<option>${f}</option>`).join('');}
@@ -372,6 +447,45 @@ const FORM_IDS=['f-id','f-forn','f-forn-outro','f-tipo','f-status','f-prazo','f-
 function clearForm(){FORM_IDS.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});const qtd=document.getElementById('f-qtd');if(qtd)qtd.value='1';document.getElementById('cb-ind').checked=false;document.getElementById('ind-fields').style.display='none';document.getElementById('fg-outro').style.display='none';}
 function fgv(id){const el=document.getElementById(id);return el?el.value.trim():'';}
 function saveContrato(){const cliente=fgv('f-cliente'),modelo=fgv('f-modelo'),tipo=fgv('f-tipo'),status=fgv('f-status');const prazo=parseInt(fgv('f-prazo'))||0,valor=parseFloat(fgv('f-valor'))||0,assin=fgv('f-assin');let forn=fgv('f-forn');if(forn==='Outro')forn=fgv('f-forn-outro')||'Outro';const erros=[];if(!cliente)erros.push('Nome do cliente');if(!modelo)erros.push('Modelo');if(!forn||forn==='')erros.push('Fornecedor');if(!tipo)erros.push('Tipo de pessoa');if(!status)erros.push('Status');if(!prazo)erros.push('Prazo');if(!valor)erros.push('Valor mensal');if(!assin)erros.push('Data de assinatura');if(erros.length){alert('Campos obrigatórios:\n• '+erros.join('\n• '));return;}const isInd=document.getElementById('cb-ind').checked;const obj={id:editId||fgv('f-id')||('ASS-'+String(contratos.length+1).padStart(3,'0')),cliente,cpf:fgv('f-cpf'),chassi:fgv('f-chassi'),modelo:normModel(modelo),assinatura:assin,prazo,entregaEfetiva:fgv('f-entef')||assin,valorMensal:valor,fornecedor:forn,tipo,comissaoPct:parseFloat(fgv('f-com'))||0,status,responsavel:fgv('f-resp'),midia:fgv('f-midia'),desfecho:fgv('f-desfecho')||'A definir',placa:fgv('f-placa'),cor:fgv('f-cor'),tipoEntrega:fgv('f-tipent'),localEntrega:fgv('f-locent'),dataPrevEntrega:fgv('f-entprev'),qtdCarros:parseInt(fgv('f-qtd'))||1,indicacao:isInd,nomeIndicador:isInd?fgv('f-ind-nome'):'',casaIndicacao:isInd?fgv('f-ind-casa'):'',observacoes:fgv('f-obs'),};if(editId){const idx=contratos.findIndex(c=>c.id===editId);if(idx>=0)contratos[idx]=obj;showSuccess(`Contrato ${editId} atualizado!`);}else{contratos.push(obj);showSuccess(`Contrato ${obj.id} cadastrado!`);}cancelEdit();updSrcLbl();updFF();saveLS();init();}
+
+/* EVENT DELEGATION para editar/excluir (resolve problema de onclick inline) */
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('[data-action]');
+  if(!btn) return;
+  const action = btn.getAttribute('data-action');
+  const id = btn.getAttribute('data-id');
+  if(action === 'edit') openEdit(id);
+  if(action === 'delete') openDeleteModal(id);
+});
+
+/* EXCLUSÃO COM SENHA */
+let deleteTargetId = null;
+const DELETE_PASS = '3251';
+function openDeleteModal(id){
+  deleteTargetId = id;
+  document.getElementById('del-id-label').textContent = id;
+  document.getElementById('del-senha').value = '';
+  document.getElementById('del-err').style.display = 'none';
+  document.getElementById('del-overlay').style.display = 'flex';
+  setTimeout(()=>document.getElementById('del-senha').focus(), 100);
+}
+function closeDeleteModal(){
+  document.getElementById('del-overlay').style.display = 'none';
+  deleteTargetId = null;
+}
+function confirmDelete(){
+  const senha = document.getElementById('del-senha').value;
+  if(senha !== DELETE_PASS){
+    document.getElementById('del-err').style.display = 'block';
+    document.getElementById('del-senha').value = '';
+    document.getElementById('del-senha').focus();
+    return;
+  }
+  contratos = contratos.filter(c => c.id !== deleteTargetId);
+  closeDeleteModal();
+  updSrcLbl(); updFF(); saveLS(); init();
+  showSuccess('Contrato ' + deleteTargetId + ' excluído.');
+}
 
 /* ABAS */
 function swTab(tab,btn){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById(tab).classList.add('active');btn.classList.add('active');document.getElementById('period-bar').classList.toggle('hidden',tab==='cadastro');}
