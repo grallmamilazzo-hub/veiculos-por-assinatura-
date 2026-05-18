@@ -13,6 +13,7 @@
   --rmd:8px;--rlg:12px;
   --dbg:rgba(226,75,74,.1);--dbr:rgba(226,75,74,.3);--dtx:#a32d2d;
   --wbg:rgba(186,117,23,.1);--wbr:rgba(186,117,23,.3);--wtx:#854f0b;
+  --sbg:rgba(99,153,34,.1);--sbr:rgba(99,153,34,.3);--stx:#3b6d11;
   --ok:#185FA5;
 }
 @media(prefers-color-scheme:dark){
@@ -22,6 +23,7 @@
     --b1:rgba(255,255,255,.07);--b2:rgba(255,255,255,.13);--b3:rgba(255,255,255,.22);
     --dbg:rgba(226,75,74,.15);--dbr:rgba(226,75,74,.35);--dtx:#f09595;
     --wbg:rgba(186,117,23,.15);--wbr:rgba(186,117,23,.35);--wtx:#ef9f27;
+    --sbg:rgba(99,153,34,.15);--sbr:rgba(99,153,34,.35);--stx:#c0dd97;
   }
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -33,18 +35,35 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg2);color:
 .brand-n{font-size:15px;font-weight:600;color:var(--t1)}
 .brand-s{font-size:11px;color:var(--t3)}
 .h-act{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.btn{padding:6px 14px;border-radius:var(--rmd);border:0.5px solid var(--b2);font-size:12px;cursor:pointer;background:var(--bg1);color:var(--t1);display:inline-flex;align-items:center;gap:5px;transition:background .15s;line-height:1.4}
+/* BUTTONS */
+.btn{padding:6px 14px;border-radius:var(--rmd);border:0.5px solid var(--b2);font-size:12px;cursor:pointer;background:var(--bg1);color:var(--t1);display:inline-flex;align-items:center;gap:5px;transition:background .15s;line-height:1.4;font-family:inherit}
 .btn:hover{background:var(--bg2)}
 .btnp{background:var(--ok);color:#fff;border-color:var(--ok)}
 .btnp:hover{background:#0c447c}
+.btns{background:#1D9E75;color:#fff;border-color:#1D9E75}
+.btns:hover{background:#0f6e56}
 /* LAYOUT */
-.wrap{max-width:1280px;margin:0 auto;padding:20px 28px}
-.src-lbl{font-size:11px;color:var(--t3);margin-bottom:14px;padding:5px 11px;background:var(--bg1);border:0.5px solid var(--b1);border-radius:var(--rmd);display:inline-flex;align-items:center;gap:6px}
+.wrap{max-width:1280px;margin:0 auto;padding:18px 28px}
+/* PERIOD BAR */
+.period-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:8px 14px;background:var(--bg1);border-radius:var(--rlg);border:0.5px solid var(--b1)}
+.period-bar label{font-size:11px;color:var(--t2);white-space:nowrap}
+.period-bar select{font-size:12px;padding:4px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);cursor:pointer;font-family:inherit}
+.period-bar.hidden{display:none}
+/* SOURCE LABEL */
+.src-lbl{font-size:11px;color:var(--t3);margin-bottom:12px;padding:5px 11px;background:var(--bg1);border:0.5px solid var(--b1);border-radius:var(--rmd);display:inline-flex;align-items:center;gap:6px}
+/* VALIDATION BOX */
+.val-outer{background:var(--wbg);border:0.5px solid var(--wbr);border-radius:var(--rlg);padding:14px 16px;margin-bottom:14px}
+.val-title{font-size:13px;font-weight:600;color:var(--wtx);margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.val-list{font-size:12px;color:var(--wtx);max-height:130px;overflow-y:auto;margin-bottom:12px;padding-left:4px}
+.val-list li{margin-bottom:4px;list-style:disc;margin-left:16px}
+.val-acts{display:flex;gap:8px}
+/* SUCCESS */
+.success-bar{background:var(--sbg);border:0.5px solid var(--sbr);color:var(--stx);border-radius:var(--rmd);padding:10px 14px;font-size:12px;margin-bottom:12px;display:none;align-items:center;gap:7px}
 /* TABS */
 .nav{display:flex;gap:4px;margin-bottom:0;border-bottom:0.5px solid var(--b2);padding-bottom:0}
-.tab{padding:9px 18px;border-radius:var(--rmd) var(--rmd) 0 0;border:0.5px solid transparent;border-bottom:none;font-size:13px;cursor:pointer;background:transparent;color:var(--t2);margin-bottom:-0.5px;display:inline-flex;align-items:center;gap:6px;transition:background .15s}
+.tab{padding:9px 18px;border-radius:var(--rmd) var(--rmd) 0 0;border:0.5px solid transparent;border-bottom:none;font-size:13px;cursor:pointer;background:transparent;color:var(--t2);margin-bottom:-0.5px;display:inline-flex;align-items:center;gap:6px;transition:background .15s;font-family:inherit}
 .tab.active{background:var(--bg1);border-color:var(--b2);border-bottom-color:var(--bg1);color:var(--t1);font-weight:500}
-.view{display:none;padding-top:20px}
+.view{display:none;padding-top:18px}
 .view.active{display:block}
 /* CARDS */
 .sec-t{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:12px}
@@ -74,28 +93,44 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg2);color:
 .atag{padding:2px 9px;border-radius:20px;font-size:11px;background:rgba(128,128,128,.12);color:var(--t2)}
 /* FILTERS */
 .filt{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-.filt select{font-size:12px;padding:5px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);cursor:pointer;transition:background .15s}
-.filt select:hover{background:var(--bg2)}
+.filt select{font-size:12px;padding:5px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);cursor:pointer;font-family:inherit}
 /* TABLE */
 .tw{background:var(--bg1);border:0.5px solid var(--b1);border-radius:var(--rlg);overflow:auto}
 table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
 th{padding:9px 10px;text-align:left;font-size:10px;font-weight:600;color:var(--t3);letter-spacing:.05em;text-transform:uppercase;border-bottom:0.5px solid var(--b1);white-space:nowrap;background:var(--bg2)}
 td{padding:7px 10px;color:var(--t1);border-bottom:0.5px solid var(--b1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:var(--bg2);transition:background .1s}
+tr:hover td{background:var(--bg2)}
 tr.rc td{background:rgba(162,45,45,.07)}
 tr.rw td{background:rgba(186,117,23,.07)}
 .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:500}
-.ba{background:#EAF3DE;color:#3B6D11}
-.be{background:#EBEBEB;color:#5F5E5A}
-.bag{background:#FEF3E2;color:#854F0B}
-.bc{background:#FDEEEE;color:#A32D2D}
+.ba{background:#EAF3DE;color:#3B6D11}.be{background:#EBEBEB;color:#5F5E5A}
+.bag{background:#FEF3E2;color:#854F0B}.bc{background:#FDEEEE;color:#A32D2D}
 .pb{background:var(--bg2);border-radius:20px;height:5px;width:72px;overflow:hidden;flex-shrink:0;border:0.5px solid var(--b1)}
 .pf{height:100%;border-radius:20px;background:#378ADD}
+/* FORM */
+.form-wrap{background:var(--bg1);border:0.5px solid var(--b1);border-radius:var(--rlg);padding:20px}
+.fsec{margin-bottom:20px}
+.fsec-t{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:12px;padding-bottom:7px;border-bottom:0.5px solid var(--b1)}
+.fg-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fg-full{grid-column:span 2}
+.fg label{display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500}
+.fg input,.fg select,.fg textarea{width:100%;font-size:12px;padding:7px 10px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit;transition:border-color .15s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--ok);box-shadow:0 0 0 2px rgba(24,95,165,.1)}
+.fg textarea{resize:vertical;min-height:64px}
+.check-row{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:13px;color:var(--t1);padding:10px 0;font-weight:500}
+.check-row input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--ok);flex-shrink:0}
+.ind-box{background:var(--bg2);border-radius:var(--rmd);padding:14px;margin-top:2px;border:0.5px solid var(--b2)}
+.form-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:0.5px solid var(--b1)}
 /* FOOTER */
 .footer{text-align:center;padding:24px;font-size:11px;color:var(--t3);border-top:0.5px solid var(--b1);margin-top:24px}
+#file-input{display:none}
 /* RESPONSIVE */
-@media(max-width:680px){.crow{grid-template-columns:1fr}.hdr{padding:10px 16px}.wrap{padding:14px 16px}.card2{grid-column:span 1}.tab{padding:7px 12px;font-size:12px}}
+@media(max-width:680px){
+  .crow{grid-template-columns:1fr}.hdr{padding:10px 16px}.wrap{padding:14px 16px}
+  .card2{grid-column:span 1}.tab{padding:7px 12px;font-size:12px}
+  .fg-grid{grid-template-columns:1fr}.fg-full{grid-column:span 1}
+}
 </style>
 </head>
 <body>
@@ -117,12 +152,22 @@ tr.rw td{background:rgba(186,117,23,.07)}
 </header>
 
 <div class="wrap">
+  <div id="success-bar" class="success-bar"><i class="ti ti-circle-check"></i><span id="success-msg"></span></div>
+  <div id="val-area"></div>
   <div id="src-lbl" class="src-lbl"><i class="ti ti-database"></i> Dados fictícios — importe seu arquivo Excel/CSV para atualizar</div>
 
   <div class="nav">
     <button class="tab active" onclick="swTab('gestao',this)"><i class="ti ti-chart-bar"></i> Gestão</button>
     <button class="tab" onclick="swTab('operacional',this)"><i class="ti ti-list-details"></i> Operacional</button>
     <button class="tab" onclick="swTab('analitico',this)"><i class="ti ti-chart-dots"></i> Analítico</button>
+    <button class="tab" onclick="swTab('cadastro',this)"><i class="ti ti-plus"></i> Cadastro</button>
+  </div>
+
+  <div id="period-bar" class="period-bar">
+    <i class="ti ti-calendar" style="color:var(--t3);font-size:14px"></i>
+    <label for="period-sel">Período:</label>
+    <select id="period-sel" onchange="onPeriodChange(this.value)"></select>
+    <span style="font-size:11px;color:var(--t3)" id="period-tag"></span>
   </div>
 
   <!-- ===== GESTÃO ===== -->
@@ -142,8 +187,8 @@ tr.rw td{background:rgba(186,117,23,.07)}
       <div class="card"><div class="lbl">Vencem em 60 dias</div><div class="val" id="k-venc">—</div><div class="sub">contratos ativos</div></div>
     </div>
     <div class="crow">
-      <div class="cbox"><div class="ch-t">Contratos por fornecedor</div><div class="leg" id="lg-forn"></div><div style="position:relative;height:175px"><canvas id="cForn" role="img" aria-label="Contratos por fornecedor"></canvas></div></div>
-      <div class="cbox"><div class="ch-t">Status dos contratos</div><div class="leg" id="lg-stat"></div><div style="position:relative;height:175px"><canvas id="cStat" role="img" aria-label="Status dos contratos"></canvas></div></div>
+      <div class="cbox"><div class="ch-t">Contratos por fornecedor</div><div class="leg" id="lg-forn"></div><div style="position:relative;height:175px"><canvas id="cForn" role="img" aria-label="Por fornecedor"></canvas></div></div>
+      <div class="cbox"><div class="ch-t">Status dos contratos</div><div class="leg" id="lg-stat"></div><div style="position:relative;height:175px"><canvas id="cStat" role="img" aria-label="Status"></canvas></div></div>
     </div>
     <div class="crow">
       <div class="cbox"><div class="ch-t">Tipo de pessoa (PF / PJ)</div><div class="leg" id="lg-tipo"></div><div style="position:relative;height:175px"><canvas id="cTipo" role="img" aria-label="PF vs PJ"></canvas></div></div>
@@ -162,18 +207,12 @@ tr.rw td{background:rgba(186,117,23,.07)}
     <div class="tw">
       <table>
         <thead><tr>
-          <th style="width:95px">Contrato</th>
-          <th style="width:140px">Cliente</th>
-          <th style="width:105px">Fornecedor</th>
-          <th style="width:42px">Tipo</th>
-          <th style="width:130px">Modelo</th>
-          <th style="width:80px">Status</th>
-          <th style="width:105px">Progresso</th>
-          <th style="width:55px">Resta</th>
-          <th style="width:82px">Vl. Mensal</th>
-          <th style="width:90px">Comissão</th>
-          <th style="width:95px">Responsável</th>
-          <th style="width:85px">Desfecho</th>
+          <th style="width:95px">Contrato</th><th style="width:140px">Cliente</th>
+          <th style="width:105px">Fornecedor</th><th style="width:42px">Tipo</th>
+          <th style="width:130px">Modelo</th><th style="width:80px">Status</th>
+          <th style="width:105px">Progresso</th><th style="width:52px">Resta</th>
+          <th style="width:82px">Vl. Mensal</th><th style="width:90px">Comissão</th>
+          <th style="width:95px">Responsável</th><th style="width:85px">Desfecho</th>
         </tr></thead>
         <tbody id="tbody"></tbody>
       </table>
@@ -191,12 +230,136 @@ tr.rw td{background:rgba(186,117,23,.07)}
       <div class="card"><div class="lbl">Participação PJ</div><div class="val" id="k-pctpj">—</div><div class="sub">dos contratos</div></div>
     </div>
     <div class="crow">
-      <div class="cbox"><div class="ch-t">Top modelos por nº de contratos</div><div style="position:relative" id="wrap-mod"><canvas id="cMod" role="img" aria-label="Modelos mais contratados"></canvas></div></div>
-      <div class="cbox"><div class="ch-t">Valor médio mensal por fornecedor (R$)</div><div style="position:relative;height:200px"><canvas id="cVForn" role="img" aria-label="Valor médio por fornecedor"></canvas></div></div>
+      <div class="cbox"><div class="ch-t">Top modelos por nº de contratos</div><div style="position:relative" id="wrap-mod"><canvas id="cMod" role="img" aria-label="Modelos"></canvas></div></div>
+      <div class="cbox"><div class="ch-t">Valor médio mensal por fornecedor (R$)</div><div style="position:relative;height:200px"><canvas id="cVForn" role="img" aria-label="Valor médio"></canvas></div></div>
     </div>
     <div class="crow">
-      <div class="cbox"><div class="ch-t">Distribuição de prazos (meses)</div><div style="position:relative;height:180px"><canvas id="cPrazos" role="img" aria-label="Distribuição de prazos"></canvas></div></div>
-      <div class="cbox"><div class="ch-t">Valor médio mensal: PF vs PJ por fornecedor</div><div class="leg" id="lg-vt"></div><div style="position:relative;height:180px"><canvas id="cVTipo" role="img" aria-label="Valor médio PF vs PJ por fornecedor"></canvas></div></div>
+      <div class="cbox"><div class="ch-t">Distribuição de prazos (meses)</div><div style="position:relative;height:180px"><canvas id="cPrazos" role="img" aria-label="Prazos"></canvas></div></div>
+      <div class="cbox"><div class="ch-t">Valor médio mensal: PF vs PJ por fornecedor</div><div class="leg" id="lg-vt"></div><div style="position:relative;height:180px"><canvas id="cVTipo" role="img" aria-label="PF vs PJ valor"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ===== CADASTRO ===== -->
+  <div id="cadastro" class="view">
+    <div class="form-wrap">
+
+      <div class="fsec">
+        <div class="fsec-t">Dados do contrato</div>
+        <div class="fg-grid">
+          <div class="fg"><label>ID Contrato</label><input id="f-id" placeholder="Ex: ASS-013 (deixe vazio para gerar automaticamente)"></div>
+          <div class="fg"><label>Fornecedor *</label>
+            <select id="f-forn" onchange="toggleOutroForn(this)">
+              <option value="">Selecione...</option>
+              <option>FLUA</option><option>SIGN &amp; DRIVE</option><option>BYD MAIS</option><option>ASSINE CAR</option><option value="Outro">Outro</option>
+            </select>
+          </div>
+          <div class="fg" id="fg-outro" style="display:none"><label>Nome do fornecedor</label><input id="f-forn-outro" placeholder="Informe o nome do fornecedor"></div>
+          <div class="fg"><label>Tipo de pessoa *</label>
+            <select id="f-tipo"><option value="">Selecione...</option><option value="PF">Pessoa Física</option><option value="PJ">Pessoa Jurídica</option></select>
+          </div>
+          <div class="fg"><label>Status *</label>
+            <select id="f-status"><option value="">Selecione...</option><option>Ativo</option><option>Aguardando Entrega</option><option>Encerrado</option><option>Cancelado</option></select>
+          </div>
+          <div class="fg"><label>Prazo do plano (meses) *</label><input id="f-prazo" type="number" min="1" placeholder="Ex: 24"></div>
+          <div class="fg"><label>Data de assinatura *</label><input id="f-assin" type="date"></div>
+          <div class="fg"><label>Valor mensal (R$) *</label><input id="f-valor" type="number" min="0" step="0.01" placeholder="Ex: 1890.00"></div>
+          <div class="fg"><label>Comissão (%)</label><input id="f-com" type="number" min="0" step="0.1" placeholder="Ex: 3"></div>
+          <div class="fg"><label>Desfecho previsto</label>
+            <select id="f-desfecho"><option value="">Selecione...</option><option>Renovação</option><option>Devolução</option><option>A definir</option></select>
+          </div>
+          <div class="fg"><label>Responsável interno</label><input id="f-resp" placeholder="Nome do responsável"></div>
+        </div>
+      </div>
+
+      <div class="fsec">
+        <div class="fsec-t">Dados do cliente</div>
+        <div class="fg-grid">
+          <div class="fg"><label>Nome completo *</label><input id="f-cliente" placeholder="Nome do cliente"></div>
+          <div class="fg"><label>CPF / CNPJ</label><input id="f-cpf" placeholder="000.000.000-00 ou 00.000.000/0001-00"></div>
+        </div>
+      </div>
+
+      <div class="fsec">
+        <div class="fsec-t">Dados do veículo</div>
+        <div class="fg-grid">
+          <div class="fg"><label>Modelo / Versão *</label><input id="f-modelo" placeholder="Ex: Polo Track"></div>
+          <div class="fg"><label>Chassi</label><input id="f-chassi" placeholder="Número do chassi"></div>
+          <div class="fg"><label>Placa</label><input id="f-placa" placeholder="ABC-1234"></div>
+          <div class="fg"><label>Cor</label><input id="f-cor" placeholder="Ex: Branco Polar"></div>
+        </div>
+      </div>
+
+      <div class="fsec">
+        <div class="fsec-t">Entrega</div>
+        <div class="fg-grid">
+          <div class="fg"><label>Data prevista de entrega</label><input id="f-entprev" type="date"></div>
+          <div class="fg"><label>Data efetiva de entrega</label><input id="f-entef" type="date"></div>
+          <div class="fg"><label>Tipo de entrega</label><input id="f-tipent" placeholder="Ex: Concessionária, Domicílio"></div>
+          <div class="fg"><label>Local da entrega</label><input id="f-locent" placeholder="Endereço ou unidade"></div>
+        </div>
+      </div>
+
+      <div class="fsec">
+        <div class="fsec-t">Origem</div>
+        <div class="fg-grid">
+          <div class="fg"><label>Origem / Mídia</label>
+            <select id="f-midia">
+              <option value="">Selecione...</option>
+              <option>Instagram</option><option>Facebook</option><option>Google</option>
+              <option>WhatsApp</option><option>Indicação</option><option>Site</option><option>Outro</option>
+            </select>
+          </div>
+        </div>
+        <label class="check-row">
+          <input type="checkbox" id="cb-ind" onchange="toggleInd()">
+          <span>É uma indicação?</span>
+        </label>
+        <div id="ind-fields" style="display:none" class="ind-box">
+          <div class="fg-grid">
+            <div class="fg"><label>Nome de quem indicou</label><input id="f-ind-nome" placeholder="Nome completo"></div>
+            <div class="fg"><label>Casa que gerou a indicação</label>
+              <select id="f-ind-casa">
+                <option value="">Selecione a unidade...</option>
+                <option>Milazzo Fiat Jaú</option>
+                <option>Milazzo Fiat Marilia</option>
+                <option>Milazzo Fiat Bauru</option>
+                <option>Milazzo Fiat Botucatu</option>
+                <option>Milazzo Fiat Santos</option>
+                <option>Milazzo Fiat Brasília</option>
+                <option>Allma Jeep &amp; RAM SJRP</option>
+                <option>Allma Jeep SJRP Usados</option>
+                <option>Allma Jeep Votuporanga</option>
+                <option>Allma Jeep Barretos</option>
+                <option>Allma Peugeot &amp; Citroën Bauru</option>
+                <option>Allma Peugeot &amp; Citroën Ribeirão Preto</option>
+                <option>Allma Peugeot &amp; Citroën Marília</option>
+                <option>Allma BYD Araçatuba</option>
+                <option>Allma BYD Bauru</option>
+                <option>Allma BYD Botucatu</option>
+                <option>Allma BYD Marília</option>
+                <option>Allma BYD SJRP</option>
+                <option>Allma BYD Jaú</option>
+                <option>Allma Denza Ribeirão Preto</option>
+                <option>Allma Leapmotor Santos</option>
+                <option>Allma Volkswagen Bauru</option>
+                <option>Allma Volkswagen Orlândia</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fsec">
+        <div class="fsec-t">Observações</div>
+        <div class="fg-grid">
+          <div class="fg fg-full"><label>Observações / Pendências</label><textarea id="f-obs" placeholder="Informações adicionais sobre o contrato..."></textarea></div>
+        </div>
+      </div>
+
+      <div class="form-footer">
+        <button class="btn" onclick="clearForm()"><i class="ti ti-x"></i> Limpar formulário</button>
+        <button class="btn btns" onclick="saveContrato()"><i class="ti ti-device-floppy"></i> Salvar contrato</button>
+      </div>
     </div>
   </div>
 
@@ -208,178 +371,159 @@ tr.rw td{background:rgba(186,117,23,.07)}
 <script>
 // =================== DADOS INICIAIS ===================
 let contratos=[
-  {id:'ASS-001',cliente:'Ricardo Almeida',cpf:'123.456.789-00',chassi:'9BW...',modelo:'Polo Track',assinatura:'2023-06-10',prazo:24,entregaEfetiva:'2023-06-15',valorMensal:1290,fornecedor:'FLUA',tipo:'PF',comissaoPct:3,status:'Ativo',responsavel:'Fernanda Lima',desfecho:'Renovação',midia:'Instagram',placa:''},
-  {id:'ASS-002',cliente:'Tech Solutions Ltda',cpf:'12.345.678/0001-99',chassi:'9BW...',modelo:'T-Cross Comfortline',assinatura:'2023-04-01',prazo:36,entregaEfetiva:'2023-04-05',valorMensal:2450,fornecedor:'SIGN & DRIVE',tipo:'PJ',comissaoPct:4,status:'Ativo',responsavel:'Carlos Mota',desfecho:'Renovação',midia:'Indicação',placa:''},
-  {id:'ASS-003',cliente:'Patrícia Souza',cpf:'987.654.321-00',chassi:'9BW...',modelo:'BYD Dolphin',assinatura:'2023-01-20',prazo:12,entregaEfetiva:'2023-01-25',valorMensal:3100,fornecedor:'BYD MAIS',tipo:'PF',comissaoPct:5,status:'Encerrado',responsavel:'Fernanda Lima',desfecho:'Devolução',midia:'Google',placa:''},
-  {id:'ASS-004',cliente:'Marcos Ribeiro',cpf:'321.654.987-11',chassi:'9BW...',modelo:'Nivus Highline',assinatura:'2024-01-05',prazo:24,entregaEfetiva:'2024-01-10',valorMensal:1890,fornecedor:'ASSINE CAR',tipo:'PF',comissaoPct:3,status:'Ativo',responsavel:'Jonas Pereira',desfecho:'A definir',midia:'Facebook',placa:''},
-  {id:'ASS-005',cliente:'Global Transportes SA',cpf:'98.765.432/0001-10',chassi:'9BW...',modelo:'Amarok V6',assinatura:'2023-09-15',prazo:36,entregaEfetiva:'2023-09-20',valorMensal:5200,fornecedor:'FLUA',tipo:'PJ',comissaoPct:4,status:'Ativo',responsavel:'Carlos Mota',desfecho:'Renovação',midia:'Indicação',placa:''},
-  {id:'ASS-006',cliente:'Ana Carolina Lima',cpf:'456.789.123-00',chassi:'9BW...',modelo:'Virtus GTS',assinatura:'2024-03-10',prazo:24,entregaEfetiva:'2024-03-14',valorMensal:2100,fornecedor:'SIGN & DRIVE',tipo:'PF',comissaoPct:4,status:'Aguardando Entrega',responsavel:'Fernanda Lima',desfecho:'A definir',midia:'Instagram',placa:''},
-  {id:'ASS-007',cliente:'Construtora Norte ME',cpf:'55.444.333/0001-22',chassi:'9BW...',modelo:'Saveiro Cab. Dupla',assinatura:'2023-11-01',prazo:24,entregaEfetiva:'2023-11-05',valorMensal:1750,fornecedor:'ASSINE CAR',tipo:'PJ',comissaoPct:3,status:'Ativo',responsavel:'Jonas Pereira',desfecho:'Renovação',midia:'WhatsApp',placa:''},
-  {id:'ASS-008',cliente:'Gustavo Martins',cpf:'111.222.333-44',chassi:'9BW...',modelo:'BYD Yuan Plus',assinatura:'2024-02-20',prazo:36,entregaEfetiva:'2024-02-25',valorMensal:2800,fornecedor:'BYD MAIS',tipo:'PF',comissaoPct:5,status:'Ativo',responsavel:'Carlos Mota',desfecho:'A definir',midia:'Google',placa:''},
-  {id:'ASS-009',cliente:'Juliana Ferreira',cpf:'555.666.777-88',chassi:'9BW...',modelo:'T-Cross 1.0 TSI',assinatura:'2023-03-01',prazo:12,entregaEfetiva:'2023-03-05',valorMensal:1650,fornecedor:'FLUA',tipo:'PF',comissaoPct:3,status:'Encerrado',responsavel:'Fernanda Lima',desfecho:'Devolução',midia:'Facebook',placa:''},
-  {id:'ASS-010',cliente:'MedGroup Saúde Ltda',cpf:'77.888.999/0001-33',chassi:'9BW...',modelo:'Virtus Exclusive',assinatura:'2023-08-10',prazo:36,entregaEfetiva:'2023-08-15',valorMensal:2250,fornecedor:'SIGN & DRIVE',tipo:'PJ',comissaoPct:4,status:'Cancelado',responsavel:'Jonas Pereira',desfecho:'Devolução',midia:'Indicação',placa:''},
-  {id:'ASS-011',cliente:'Fernando Castro',cpf:'222.333.444-55',chassi:'9BW...',modelo:'Polo Track',assinatura:'2024-05-01',prazo:24,entregaEfetiva:'2024-05-05',valorMensal:1350,fornecedor:'FLUA',tipo:'PF',comissaoPct:3,status:'Ativo',responsavel:'Fernanda Lima',desfecho:'A definir',midia:'Instagram',placa:''},
-  {id:'ASS-012',cliente:'Logística Real Ltda',cpf:'33.222.111/0001-44',chassi:'9BW...',modelo:'Amarok V6',assinatura:'2024-03-20',prazo:48,entregaEfetiva:'2024-03-25',valorMensal:5400,fornecedor:'FLUA',tipo:'PJ',comissaoPct:4,status:'Ativo',responsavel:'Carlos Mota',desfecho:'Renovação',midia:'Indicação',placa:''},
+  {id:'ASS-001',cliente:'Ricardo Almeida',cpf:'123.456.789-00',chassi:'',modelo:'Polo track',assinatura:'2026-01-10',prazo:24,entregaEfetiva:'2026-01-15',valorMensal:1290,fornecedor:'FLUA',tipo:'PF',comissaoPct:3,status:'Ativo',responsavel:'Fernanda Lima',desfecho:'Renovação',midia:'Instagram',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:false,nomeIndicador:'',casaIndicacao:'',observacoes:''},
+  {id:'ASS-002',cliente:'Tech Solutions Ltda',cpf:'12.345.678/0001-99',chassi:'',modelo:'T-cross comfortline',assinatura:'2026-01-05',prazo:36,entregaEfetiva:'2026-01-10',valorMensal:2450,fornecedor:'SIGN & DRIVE',tipo:'PJ',comissaoPct:4,status:'Ativo',responsavel:'Carlos Mota',desfecho:'Renovação',midia:'Indicação',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:true,nomeIndicador:'João Silva',casaIndicacao:'Allma BYD Bauru',observacoes:''},
+  {id:'ASS-003',cliente:'Patrícia Souza',cpf:'987.654.321-00',chassi:'',modelo:'Byd dolphin',assinatura:'2026-02-20',prazo:12,entregaEfetiva:'2026-02-25',valorMensal:3100,fornecedor:'BYD MAIS',tipo:'PF',comissaoPct:5,status:'Encerrado',responsavel:'Fernanda Lima',desfecho:'Devolução',midia:'Google',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:false,nomeIndicador:'',casaIndicacao:'',observacoes:''},
+  {id:'ASS-004',cliente:'Marcos Ribeiro',cpf:'321.654.987-11',chassi:'',modelo:'Nivus highline',assinatura:'2026-02-05',prazo:24,entregaEfetiva:'2026-02-10',valorMensal:1890,fornecedor:'ASSINE CAR',tipo:'PF',comissaoPct:3,status:'Ativo',responsavel:'Jonas Pereira',desfecho:'A definir',midia:'Facebook',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:false,nomeIndicador:'',casaIndicacao:'',observacoes:''},
+  {id:'ASS-005',cliente:'Global Transportes SA',cpf:'98.765.432/0001-10',chassi:'',modelo:'Amarok v6',assinatura:'2026-03-15',prazo:36,entregaEfetiva:'2026-03-20',valorMensal:5200,fornecedor:'FLUA',tipo:'PJ',comissaoPct:4,status:'Ativo',responsavel:'Carlos Mota',desfecho:'Renovação',midia:'Indicação',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:true,nomeIndicador:'Maria Paula',casaIndicacao:'Milazzo Fiat Bauru',observacoes:''},
+  {id:'ASS-006',cliente:'Ana Carolina Lima',cpf:'456.789.123-00',chassi:'',modelo:'Virtus gts',assinatura:'2026-03-10',prazo:24,entregaEfetiva:'2026-03-14',valorMensal:2100,fornecedor:'SIGN & DRIVE',tipo:'PF',comissaoPct:4,status:'Aguardando Entrega',responsavel:'Fernanda Lima',desfecho:'A definir',midia:'Instagram',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:false,nomeIndicador:'',casaIndicacao:'',observacoes:''},
+  {id:'ASS-007',cliente:'Construtora Norte ME',cpf:'55.444.333/0001-22',chassi:'',modelo:'Saveiro cabine dupla',assinatura:'2026-04-01',prazo:24,entregaEfetiva:'2026-04-05',valorMensal:1750,fornecedor:'ASSINE CAR',tipo:'PJ',comissaoPct:3,status:'Ativo',responsavel:'Jonas Pereira',desfecho:'Renovação',midia:'WhatsApp',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:false,nomeIndicador:'',casaIndicacao:'',observacoes:''},
+  {id:'ASS-008',cliente:'Gustavo Martins',cpf:'111.222.333-44',chassi:'',modelo:'Byd yuan plus',assinatura:'2026-04-20',prazo:36,entregaEfetiva:'2026-04-25',valorMensal:2800,fornecedor:'BYD MAIS',tipo:'PF',comissaoPct:5,status:'Ativo',responsavel:'Carlos Mota',desfecho:'A definir',midia:'Google',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:false,nomeIndicador:'',casaIndicacao:'',observacoes:''},
+  {id:'ASS-009',cliente:'Juliana Ferreira',cpf:'555.666.777-88',chassi:'',modelo:'T-cross 1.0 tsi',assinatura:'2026-05-01',prazo:12,entregaEfetiva:'2026-05-05',valorMensal:1650,fornecedor:'FLUA',tipo:'PF',comissaoPct:3,status:'Ativo',responsavel:'Fernanda Lima',desfecho:'Devolução',midia:'Facebook',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:false,nomeIndicador:'',casaIndicacao:'',observacoes:''},
+  {id:'ASS-010',cliente:'MedGroup Saúde Ltda',cpf:'77.888.999/0001-33',chassi:'',modelo:'Virtus exclusive',assinatura:'2026-05-10',prazo:36,entregaEfetiva:'2026-05-15',valorMensal:2250,fornecedor:'SIGN & DRIVE',tipo:'PJ',comissaoPct:4,status:'Cancelado',responsavel:'Jonas Pereira',desfecho:'Devolução',midia:'Indicação',placa:'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',indicacao:false,nomeIndicador:'',casaIndicacao:'',observacoes:''},
 ];
 
 // =================== CONSTANTES ===================
-const CF={'FLUA':'#378ADD','SIGN & DRIVE':'#1D9E75','BYD MAIS':'#EF9F27','ASSINE CAR':'#D4537E'};
+const KNOWNFORN=['FLUA','SIGN & DRIVE','BYD MAIS','ASSINE CAR'];
+const CF={'FLUA':'#378ADD','SIGN & DRIVE':'#1D9E75','BYD MAIS':'#EF9F27','ASSINE CAR':'#D4537E','Outro':'#888780'};
 const CS={'Ativo':'#639922','Aguardando Entrega':'#BA7517','Encerrado':'#888780','Cancelado':'#E24B4A'};
 const CT={'PF':'#378ADD','PJ':'#D85A30'};
+const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const CH={};
+let selectedPeriod='';
+let pendingImport=null;
 
 // =================== UTILITÁRIOS ===================
 function addM(d,m){const r=new Date(d);r.setMonth(r.getMonth()+m);return r}
 function diffM(a,b){return(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth())}
-function getHoje(){return new Date()}
-function pct(c){
-  const ini=new Date(c.entregaEfetiva||c.assinatura);
-  if(isNaN(ini.getTime()))return 0;
-  const p=c.prazo||1;
-  return Math.min(100,Math.max(0,Math.round(diffM(ini,getHoje())/p*100)));
-}
-function mRest(c){
-  const ini=new Date(c.entregaEfetiva||c.assinatura);
-  if(isNaN(ini.getTime()))return 0;
-  return Math.max(0,diffM(getHoje(),addM(ini,c.prazo||1)));
-}
+const hoje=()=>new Date();
+function pct(c){const i=new Date(c.entregaEfetiva||c.assinatura);if(isNaN(i.getTime()))return 0;return Math.min(100,Math.max(0,Math.round(diffM(i,hoje())/Math.max(1,c.prazo)*100)));}
+function mRest(c){const i=new Date(c.entregaEfetiva||c.assinatura);if(isNaN(i.getTime()))return 0;return Math.max(0,diffM(hoje(),addM(i,c.prazo||1)));}
 function fmt(v){return'R$\u00a0'+Math.round(v).toLocaleString('pt-BR')}
 function fmtK(v){return v>=1000?'R$'+Math.round(v/1000)+'k':'R$'+Math.round(v)}
-function mkChart(id,cfg){if(CH[id]){CH[id].destroy();}CH[id]=new Chart(document.getElementById(id),cfg);}
-function mkLeg(elId,labels,colors){document.getElementById(elId).innerHTML=labels.map((l,i)=>`<span><i style="background:${colors[i]}"></i>${l}</span>`).join('');}
-function mkPie(id,labels,data,colors){
-  mkChart(id,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0}]},
-  options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},
-  tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+ctx.raw}}}}});
+function normModel(s){if(!s)return s;const t=s.trim();return t.charAt(0).toUpperCase()+t.slice(1).toLowerCase();}
+function mkChart(id,cfg){if(CH[id])CH[id].destroy();CH[id]=new Chart(document.getElementById(id),cfg);}
+function mkLeg(id,labels,colors){document.getElementById(id).innerHTML=labels.map((l,i)=>`<span><i style="background:${colors[i]}"></i>${l}</span>`).join('');}
+function mkPie(id,labels,data,colors){mkChart(id,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+ctx.raw}}}}});}
+function getFiltrado(){let d=contratos;if(selectedPeriod)d=d.filter(c=>(c.assinatura||'').startsWith(selectedPeriod));return d;}
+function fornGroup(c){return KNOWNFORN.includes(c.fornecedor)?c.fornecedor:'Outro';}
+function showSuccess(msg){const b=document.getElementById('success-bar');document.getElementById('success-msg').textContent=msg;b.style.display='flex';setTimeout(()=>b.style.display='none',4000);}
+
+// =================== FILTRO PERÍODO ===================
+function buildPeriodFilter(){
+  const sel=document.getElementById('period-sel');
+  const months=[{v:'',l:'Todos os períodos'}];
+  const start=new Date(2026,0);
+  const end=new Date();end.setMonth(end.getMonth()+6);
+  let cur=new Date(start);
+  while(cur<=end){months.push({v:`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}`,l:`${MESES[cur.getMonth()]} ${cur.getFullYear()}`});cur.setMonth(cur.getMonth()+1);}
+  sel.innerHTML=months.map(m=>`<option value="${m.v}">${m.l}</option>`).join('');
+}
+function onPeriodChange(v){
+  selectedPeriod=v;
+  document.getElementById('period-tag').textContent=v?'filtro ativo':'';
+  init();
 }
 
 // =================== KPIs ===================
 function calcKpis(){
-  const ativos=contratos.filter(c=>c.status==='Ativo');
+  const d=getFiltrado();
+  const ativos=d.filter(c=>c.status==='Ativo');
   document.getElementById('k-ativ').textContent=ativos.length;
   document.getElementById('k-mrr').textContent=fmt(ativos.reduce((s,c)=>s+c.valorMensal,0));
-  const com=contratos.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),0);
-  const comPF=contratos.filter(c=>c.tipo==='PF').reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),0);
-  const comPJ=contratos.filter(c=>c.tipo==='PJ').reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),0);
+  const com=d.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),0);
   document.getElementById('k-com').textContent=fmt(com);
-  document.getElementById('k-com-pf').textContent=fmt(comPF);
-  document.getElementById('k-com-pj').textContent=fmt(comPJ);
+  document.getElementById('k-com-pf').textContent=fmt(d.filter(c=>c.tipo==='PF').reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),0));
+  document.getElementById('k-com-pj').textContent=fmt(d.filter(c=>c.tipo==='PJ').reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),0));
   document.getElementById('k-venc').textContent=ativos.filter(c=>mRest(c)<=2).length;
 }
 
 // =================== GESTÃO CHARTS ===================
 function buildGestao(){
+  const d=getFiltrado();
   const fkeys=Object.keys(CF);
-  const fdata=fkeys.map(k=>contratos.filter(c=>c.fornecedor===k).length);
+  const fdata=fkeys.map(k=>d.filter(c=>fornGroup(c)===k).length);
   mkLeg('lg-forn',fkeys.map((k,i)=>k+' ('+fdata[i]+')'),fkeys.map(k=>CF[k]));
   mkPie('cForn',fkeys,fdata,fkeys.map(k=>CF[k]));
-
   const skeys=Object.keys(CS);
-  const sdata=skeys.map(k=>contratos.filter(c=>c.status===k).length);
+  const sdata=skeys.map(k=>d.filter(c=>c.status===k).length);
   mkLeg('lg-stat',skeys.map((k,i)=>k+' ('+sdata[i]+')'),skeys.map(k=>CS[k]));
   mkPie('cStat',skeys,sdata,skeys.map(k=>CS[k]));
-
   const tkeys=Object.keys(CT);
-  const tdata=tkeys.map(k=>contratos.filter(c=>c.tipo===k).length);
+  const tdata=tkeys.map(k=>d.filter(c=>c.tipo===k).length);
   mkLeg('lg-tipo',tkeys.map((k,i)=>k+' ('+tdata[i]+')'),tkeys.map(k=>CT[k]));
   mkPie('cTipo',tkeys,tdata,tkeys.map(k=>CT[k]));
-
-  const comD=fkeys.map(k=>Math.round(contratos.filter(c=>c.fornecedor===k).reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),0)));
+  const comD=fkeys.map(k=>Math.round(d.filter(c=>fornGroup(c)===k).reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),0)));
   mkChart('cCom',{type:'bar',data:{labels:fkeys,datasets:[{data:comD,backgroundColor:fkeys.map(k=>CF[k]),borderWidth:0,borderRadius:4}]},
   options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)}}},
   scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:11},callback:v=>fmtK(v)}}}}});
 }
 
-// =================== ANALÍTICO CHARTS ===================
+// =================== ANALÍTICO ===================
 function buildAnalitico(){
-  const total=contratos.length||1;
-  const prazoMedio=Math.round(contratos.reduce((s,c)=>s+(c.prazo||0),0)/total);
-  const valorMedio=Math.round(contratos.reduce((s,c)=>s+c.valorMensal,0)/total);
-  const pctPJ=Math.round(contratos.filter(c=>c.tipo==='PJ').length/total*100);
-  document.getElementById('k-prazo').textContent=prazoMedio+' m';
-  document.getElementById('k-vmedio').textContent=fmtK(valorMedio);
-  document.getElementById('k-pctpj').textContent=pctPJ+'%';
-
-  const modMap={};
-  contratos.forEach(c=>{modMap[c.modelo]=(modMap[c.modelo]||0)+1;});
+  const d=getFiltrado();const total=d.length||1;
+  document.getElementById('k-prazo').textContent=Math.round(d.reduce((s,c)=>s+(c.prazo||0),0)/total)+' m';
+  document.getElementById('k-vmedio').textContent=fmtK(Math.round(d.reduce((s,c)=>s+c.valorMensal,0)/total));
+  document.getElementById('k-pctpj').textContent=Math.round(d.filter(c=>c.tipo==='PJ').length/total*100)+'%';
+  const modMap={};d.forEach(c=>{const nm=normModel(c.modelo);modMap[nm]=(modMap[nm]||0)+1;});
   const sorted=Object.entries(modMap).sort((a,b)=>b[1]-a[1]);
-  if(sorted.length){
-    document.getElementById('k-topmod').textContent=sorted[0][0];
-    document.getElementById('k-topmod-s').textContent=sorted[0][1]+' contrato(s)';
-  }
+  if(sorted.length){document.getElementById('k-topmod').textContent=sorted[0][0];document.getElementById('k-topmod-s').textContent=sorted[0][1]+' contrato(s)';}
   const top6=sorted.slice(0,6);
-  const mH=Math.max(160,top6.length*38+50);
-  document.getElementById('wrap-mod').style.height=mH+'px';
+  document.getElementById('wrap-mod').style.height=Math.max(150,top6.length*38+50)+'px';
   mkChart('cMod',{type:'bar',data:{labels:top6.map(e=>e[0]),datasets:[{data:top6.map(e=>e[1]),backgroundColor:'#378ADD',borderWidth:0,borderRadius:4}]},
   options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
   scales:{x:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:11},stepSize:1}},y:{grid:{display:false},ticks:{font:{size:11},autoSkip:false}}}}});
-
   const fkeys=Object.keys(CF);
-  const vForn=fkeys.map(k=>{const g=contratos.filter(c=>c.fornecedor===k);return g.length?Math.round(g.reduce((s,c)=>s+c.valorMensal,0)/g.length):0;});
+  const vForn=fkeys.map(k=>{const g=d.filter(c=>fornGroup(c)===k);return g.length?Math.round(g.reduce((s,c)=>s+c.valorMensal,0)/g.length):0;});
   mkChart('cVForn',{type:'bar',data:{labels:fkeys,datasets:[{data:vForn,backgroundColor:fkeys.map(k=>CF[k]),borderWidth:0,borderRadius:4}]},
   options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)}}},
   scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:11},callback:v=>fmtK(v)}}}}});
-
-  const prMap={};
-  contratos.forEach(c=>{const k=(c.prazo||0)+'m';prMap[k]=(prMap[k]||0)+1;});
+  const prMap={};d.forEach(c=>{const k=(c.prazo||0)+'m';prMap[k]=(prMap[k]||0)+1;});
   const prS=Object.entries(prMap).sort((a,b)=>parseInt(a)-parseInt(b));
   mkChart('cPrazos',{type:'bar',data:{labels:prS.map(e=>e[0]),datasets:[{data:prS.map(e=>e[1]),backgroundColor:'#534AB7',borderWidth:0,borderRadius:4}]},
   options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
   scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:11},stepSize:1}}}}});
-
-  const vPF=fkeys.map(k=>{const g=contratos.filter(c=>c.fornecedor===k&&c.tipo==='PF');return g.length?Math.round(g.reduce((s,c)=>s+c.valorMensal,0)/g.length):0;});
-  const vPJ=fkeys.map(k=>{const g=contratos.filter(c=>c.fornecedor===k&&c.tipo==='PJ');return g.length?Math.round(g.reduce((s,c)=>s+c.valorMensal,0)/g.length):0;});
   document.getElementById('lg-vt').innerHTML='<span><i style="background:#378ADD"></i>PF</span><span><i style="background:#D85A30"></i>PJ</span>';
-  mkChart('cVTipo',{type:'bar',data:{labels:fkeys,datasets:[
-    {label:'PF',data:vPF,backgroundColor:'#378ADD',borderWidth:0,borderRadius:3},
-    {label:'PJ',data:vPJ,backgroundColor:'#D85A30',borderWidth:0,borderRadius:3}
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
-  tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmt(ctx.raw)}}},
+  const vPF=fkeys.map(k=>{const g=d.filter(c=>fornGroup(c)===k&&c.tipo==='PF');return g.length?Math.round(g.reduce((s,c)=>s+c.valorMensal,0)/g.length):0;});
+  const vPJ=fkeys.map(k=>{const g=d.filter(c=>fornGroup(c)===k&&c.tipo==='PJ');return g.length?Math.round(g.reduce((s,c)=>s+c.valorMensal,0)/g.length):0;});
+  mkChart('cVTipo',{type:'bar',data:{labels:fkeys,datasets:[{label:'PF',data:vPF,backgroundColor:'#378ADD',borderWidth:0,borderRadius:3},{label:'PJ',data:vPJ,backgroundColor:'#D85A30',borderWidth:0,borderRadius:3}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmt(ctx.raw)}}},
   scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:11},callback:v=>fmtK(v)}}}}});
 }
 
 // =================== ALERTAS ===================
 function renderAlerts(){
-  const ativos=contratos.filter(c=>c.status==='Ativo');
+  const ativos=getFiltrado().filter(c=>c.status==='Ativo');
   const crit=ativos.filter(c=>mRest(c)<=1);
   const atenc=ativos.filter(c=>mRest(c)>1&&mRest(c)<=2);
-  let html='';
-  if(crit.length){
-    html+=`<div class="abox ac"><div class="at"><i class="ti ti-alert-circle"></i> Vencendo em até 30 dias — ${crit.length} contrato(s)</div>
-    <div class="alist">${crit.map(c=>`<span class="atag">${c.id} · ${c.cliente.split(' ')[0]} (${mRest(c)}m)</span>`).join('')}</div></div>`;
-  }
-  if(atenc.length){
-    html+=`<div class="abox aw"><div class="at"><i class="ti ti-alert-triangle"></i> Atenção: vencem em 31–60 dias — ${atenc.length} contrato(s)</div>
-    <div class="alist">${atenc.map(c=>`<span class="atag">${c.id} · ${c.cliente.split(' ')[0]} (${mRest(c)}m)</span>`).join('')}</div></div>`;
-  }
-  if(!crit.length&&!atenc.length){
-    html=`<div class="abox aok"><div class="at"><i class="ti ti-circle-check"></i> Nenhum contrato com vencimento nos próximos 60 dias.</div></div>`;
-  }
-  document.getElementById('alerts').innerHTML=html;
+  let h='';
+  if(crit.length)h+=`<div class="abox ac"><div class="at"><i class="ti ti-alert-circle"></i> Vencendo em até 30 dias — ${crit.length} contrato(s)</div><div class="alist">${crit.map(c=>`<span class="atag">${c.id} · ${c.cliente.split(' ')[0]} (${mRest(c)}m)</span>`).join('')}</div></div>`;
+  if(atenc.length)h+=`<div class="abox aw"><div class="at"><i class="ti ti-alert-triangle"></i> Atenção: vencem em 31–60 dias — ${atenc.length} contrato(s)</div><div class="alist">${atenc.map(c=>`<span class="atag">${c.id} · ${c.cliente.split(' ')[0]} (${mRest(c)}m)</span>`).join('')}</div></div>`;
+  if(!crit.length&&!atenc.length)h=`<div class="abox aok"><div class="at"><i class="ti ti-circle-check"></i> Nenhum vencimento próximo no período selecionado.</div></div>`;
+  document.getElementById('alerts').innerHTML=h;
 }
 
 // =================== TABELA ===================
 function badgeSt(s){const m={Ativo:'ba',Encerrado:'be','Aguardando Entrega':'bag',Cancelado:'bc'};return`<span class="badge ${m[s]||'be'}">${s}</span>`;}
 function renderTbl(){
-  const fs=document.getElementById('fs').value;
-  const ff=document.getElementById('ff').value;
-  const ft=document.getElementById('ft').value;
-  const rows=contratos.filter(c=>{
+  const fs=document.getElementById('fs').value,ff=document.getElementById('ff').value,ft=document.getElementById('ft').value;
+  const rows=getFiltrado().filter(c=>{
     if(fs&&c.status!==fs)return false;
-    if(ff&&c.fornecedor!==ff)return false;
+    if(ff&&fornGroup(c)!==ff&&c.fornecedor!==ff)return false;
     if(ft&&c.tipo!==ft)return false;
     return true;
   });
   document.getElementById('tbody').innerHTML=rows.map(c=>{
-    const p=pct(c);const mr=mRest(c);
+    const p=pct(c),mr=mRest(c);
     const cls=c.status==='Ativo'&&mr<=1?'rc':c.status==='Ativo'&&mr<=2?'rw':'';
     const comR=Math.round(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100);
+    const indIcon=c.indicacao?` <i class="ti ti-users" title="Indicação: ${c.nomeIndicador} (${c.casaIndicacao})" style="color:#185FA5;font-size:11px"></i>`:'';
     return`<tr class="${cls}">
       <td title="${c.id}">${c.id}</td>
-      <td title="${c.cliente}">${c.cliente}</td>
-      <td>${c.fornecedor}</td>
+      <td title="${c.cliente}">${c.cliente}${indIcon}</td>
+      <td>${fornGroup(c)}</td>
       <td><span class="badge" style="background:${c.tipo==='PF'?'#E6F1FB':'#FAECE7'};color:${c.tipo==='PF'?'#185FA5':'#993C1D'}">${c.tipo}</span></td>
-      <td title="${c.modelo}">${c.modelo}</td>
+      <td title="${normModel(c.modelo)}">${normModel(c.modelo)}</td>
       <td>${badgeSt(c.status)}</td>
       <td><div style="display:flex;align-items:center;gap:6px"><div class="pb"><div class="pf" style="width:${p}%"></div></div><span style="font-size:10px;color:var(--t2)">${p}%</span></div></td>
       <td style="font-size:11px;color:var(--t2)">${mr}m</td>
@@ -395,18 +539,17 @@ function renderTbl(){
 // =================== FILTRO FORNECEDOR ===================
 function updFF(){
   const sel=document.getElementById('ff');
-  const uniq=[...new Set(contratos.map(c=>c.fornecedor).filter(Boolean))].sort();
+  const uniq=[...new Set(contratos.map(c=>fornGroup(c)).filter(Boolean))].sort();
   sel.innerHTML='<option value="">Todos os fornecedores</option>'+uniq.map(f=>`<option>${f}</option>`).join('');
 }
 
-// =================== IMPORTAR ===================
+// =================== IMPORTAR + VALIDAÇÃO ===================
 function handleImport(inp){
   const file=inp.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=function(e){
     try{
-      const data=new Uint8Array(e.target.result);
-      const wb=XLSX.read(data,{type:'array',cellDates:true});
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
       if(rows.length<2){alert('Arquivo sem dados suficientes.');return;}
@@ -414,39 +557,70 @@ function handleImport(inp){
       const dataRows=rows.slice(1).filter(r=>r.some(c=>c!==''));
       function gc(alts){for(const a of alts){const i=headers.findIndex(h=>h.includes(a));if(i>=0)return i;}return -1;}
       function gv(row,alts){const i=gc(alts);return i>=0?row[i]:'';}
-      function parseNum(v){return parseFloat(String(v).replace(/[^\d.,]/g,'').replace(',','.'))||0;}
+      function pNum(v){return parseFloat(String(v).replace(/[^\d.,]/g,'').replace(',','.'))||0;}
       function fmtD(d){if(!d)return'';if(d instanceof Date)return d.toISOString().split('T')[0];return String(d).split('T')[0];}
-      contratos=dataRows.map((row,idx)=>({
+      const parsed=dataRows.map((row,idx)=>({
         id:gv(row,['id contrato','contrato','id'])||('IMP-'+(idx+1)),
-        cliente:gv(row,['cliente','nome'])||'N/A',
-        cpf:gv(row,['cpf','cnpj'])||'',
-        chassi:gv(row,['chassi'])||'',
-        modelo:gv(row,['modelo'])||'N/A',
+        cliente:gv(row,['cliente','nome'])||'',
+        cpf:gv(row,['cpf','cnpj'])||'',chassi:gv(row,['chassi'])||'',
+        modelo:normModel(String(gv(row,['modelo'])||'')),
         assinatura:fmtD(gv(row,['assinatura'])),
-        prazo:parseInt(gv(row,['prazo']))||24,
+        prazo:parseInt(gv(row,['prazo']))||0,
         entregaEfetiva:fmtD(gv(row,['efetiva','entrega efetiva']))||fmtD(gv(row,['assinatura'])),
-        valorMensal:parseNum(gv(row,['valor mensal','valor'])),
-        fornecedor:gv(row,['fornecedor'])||'N/A',
+        valorMensal:pNum(gv(row,['valor mensal','valor'])),
+        fornecedor:gv(row,['fornecedor'])||'',
         tipo:String(gv(row,['tipo de pessoa','tipo pessoa','pf/pj','tipo'])).toUpperCase().includes('J')?'PJ':'PF',
-        comissaoPct:parseNum(gv(row,['comiss'])),
+        comissaoPct:pNum(gv(row,['comiss'])),
         status:gv(row,['status'])||'Ativo',
         responsavel:gv(row,['respons'])||'',
         midia:gv(row,['midia','mídia','origem'])||'',
         desfecho:gv(row,['desfecho'])||'A definir',
-        placa:gv(row,['placa'])||'',
+        placa:gv(row,['placa'])||'',cor:'',tipoEntrega:'',localEntrega:'',dataPrevEntrega:'',
+        indicacao:false,nomeIndicador:'',casaIndicacao:'',observacoes:'',
       }));
-      document.getElementById('src-lbl').innerHTML=`<i class="ti ti-circle-check"></i> Importado: ${file.name} &nbsp;(${contratos.length} contratos)`;
-      updFF();init();
-    }catch(err){alert('Erro ao importar o arquivo: '+err.message);}
+      const VALID_STATUS=['Ativo','Aguardando Entrega','Encerrado','Cancelado'];
+      const issues=[];
+      parsed.forEach((c,i)=>{
+        const ln=i+2;
+        if(!c.cliente)issues.push(`Linha ${ln} (${c.id}): "Cliente" vazio`);
+        if(!c.modelo)issues.push(`Linha ${ln} (${c.id}): "Modelo" vazio`);
+        if(!c.fornecedor)issues.push(`Linha ${ln} (${c.id}): "Fornecedor" vazio`);
+        if(!c.valorMensal)issues.push(`Linha ${ln} (${c.id}): Valor mensal = 0 ou vazio`);
+        if(!c.prazo)issues.push(`Linha ${ln} (${c.id}): Prazo = 0 ou vazio`);
+        if(!c.assinatura)issues.push(`Linha ${ln} (${c.id}): Data de assinatura vazia`);
+        if(c.status&&!VALID_STATUS.includes(c.status))issues.push(`Linha ${ln} (${c.id}): Status "${c.status}" não reconhecido — será definido como "Ativo"`);
+        if(!c.entregaEfetiva)issues.push(`Linha ${ln} (${c.id}): Data de entrega efetiva vazia (afeta cálculo de progresso)`);
+      });
+      if(issues.length){
+        pendingImport={data:parsed,fileName:file.name};
+        document.getElementById('val-area').innerHTML=`<div class="val-outer">
+          <div class="val-title"><i class="ti ti-alert-triangle"></i> ${issues.length} problema(s) em ${parsed.length} contrato(s)</div>
+          <ul class="val-list">${issues.map(i=>`<li>${i}</li>`).join('')}</ul>
+          <div class="val-acts">
+            <button class="btn" onclick="cancelImport()"><i class="ti ti-x"></i> Cancelar importação</button>
+            <button class="btn btnp" onclick="confirmImport()"><i class="ti ti-check"></i> Importar mesmo assim</button>
+          </div>
+        </div>`;
+      } else {
+        applyImport(parsed,file.name);
+      }
+    }catch(err){alert('Erro ao importar: '+err.message);}
   };
-  reader.readAsArrayBuffer(file);
-  inp.value='';
+  reader.readAsArrayBuffer(file);inp.value='';
+}
+function confirmImport(){if(pendingImport){applyImport(pendingImport.data,pendingImport.fileName);pendingImport=null;}}
+function cancelImport(){document.getElementById('val-area').innerHTML='';pendingImport=null;}
+function applyImport(data,fileName){
+  contratos=data;
+  document.getElementById('val-area').innerHTML='';
+  document.getElementById('src-lbl').innerHTML=`<i class="ti ti-circle-check"></i> Importado: ${fileName} (${contratos.length} contratos)`;
+  updFF();init();showSuccess(`${contratos.length} contratos importados com sucesso!`);
 }
 
 // =================== EXPORTAR EXCEL ===================
 function exportXLS(){
-  const heads=['ID Contrato','Cliente','CPF/CNPJ','Chassi','Modelo','Data Assinatura','Prazo (meses)','Entrega Efetiva','Valor Mensal R$','Fornecedor','Tipo Pessoa','Comissão %','Comissão R$','Status','Responsável','Origem Mídia','Desfecho','Placa','% Concluído','Meses Restantes'];
-  const rows=contratos.map(c=>[c.id,c.cliente,c.cpf,c.chassi,c.modelo,c.assinatura,c.prazo,c.entregaEfetiva,c.valorMensal,c.fornecedor,c.tipo,c.comissaoPct,Math.round(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),c.status,c.responsavel,c.midia,c.desfecho,c.placa,pct(c),mRest(c)]);
+  const heads=['ID Contrato','Cliente','CPF/CNPJ','Chassi','Modelo','Data Assinatura','Prazo (meses)','Entrega Efetiva','Valor Mensal R$','Fornecedor','Tipo Pessoa','Comissão %','Comissão R$','Status','Responsável','Origem Mídia','Desfecho','Placa','% Concluído','Meses Restantes','Indicação','Nome Indicador','Casa Indicação','Observações'];
+  const rows=contratos.map(c=>[c.id,c.cliente,c.cpf,c.chassi,normModel(c.modelo),c.assinatura,c.prazo,c.entregaEfetiva,c.valorMensal,c.fornecedor,c.tipo,c.comissaoPct,Math.round(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),c.status,c.responsavel,c.midia,c.desfecho,c.placa,pct(c),mRest(c),c.indicacao?'Sim':'Não',c.nomeIndicador||'',c.casaIndicacao||'',c.observacoes||'']);
   const ws=XLSX.utils.aoa_to_sheet([heads,...rows]);
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Contratos');
@@ -459,11 +633,42 @@ function exportDash(){
   const src=document.documentElement.outerHTML;
   const updated=src.replace(/let contratos=\[[\s\S]*?\];/,'let contratos='+dataJson+';');
   const blob=new Blob([updated],{type:'text/html;charset=utf-8'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='dashboard_allma_milazzo.html';
-  a.click();
-  URL.revokeObjectURL(a.href);
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='index.html';a.click();URL.revokeObjectURL(a.href);
+}
+
+// =================== CADASTRO - FORM ===================
+function toggleInd(){document.getElementById('ind-fields').style.display=document.getElementById('cb-ind').checked?'block':'none';}
+function toggleOutroForn(sel){document.getElementById('fg-outro').style.display=sel.value==='Outro'?'block':'none';}
+const FORM_IDS=['f-id','f-forn','f-forn-outro','f-tipo','f-status','f-prazo','f-assin','f-valor','f-com','f-desfecho','f-resp','f-cliente','f-cpf','f-modelo','f-chassi','f-placa','f-cor','f-entprev','f-entef','f-tipent','f-locent','f-midia','f-ind-nome','f-ind-casa','f-obs'];
+function clearForm(){FORM_IDS.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('cb-ind').checked=false;document.getElementById('ind-fields').style.display='none';document.getElementById('fg-outro').style.display='none';}
+function fgv(id){const el=document.getElementById(id);return el?el.value.trim():'';}
+function saveContrato(){
+  const cliente=fgv('f-cliente'),modelo=fgv('f-modelo'),tipo=fgv('f-tipo'),status=fgv('f-status');
+  const prazo=parseInt(fgv('f-prazo'))||0,valor=parseFloat(fgv('f-valor'))||0,assin=fgv('f-assin');
+  let forn=fgv('f-forn');if(forn==='Outro')forn=fgv('f-forn-outro')||'Outro';
+  const erros=[];
+  if(!cliente)erros.push('Nome do cliente');if(!modelo)erros.push('Modelo / Versão');
+  if(!forn||forn==='')erros.push('Fornecedor');if(!tipo)erros.push('Tipo de pessoa');
+  if(!status)erros.push('Status');if(!prazo)erros.push('Prazo (meses)');
+  if(!valor)erros.push('Valor mensal');if(!assin)erros.push('Data de assinatura');
+  if(erros.length){alert('Campos obrigatórios não preenchidos:\n• '+erros.join('\n• '));return;}
+  const isInd=document.getElementById('cb-ind').checked;
+  const novoId=fgv('f-id')||('ASS-'+String(contratos.length+1).padStart(3,'0'));
+  contratos.push({
+    id:novoId,cliente,cpf:fgv('f-cpf'),chassi:fgv('f-chassi'),
+    modelo:normModel(modelo),assinatura:assin,prazo,
+    entregaEfetiva:fgv('f-entef')||assin,
+    valorMensal:valor,fornecedor:forn,tipo,
+    comissaoPct:parseFloat(fgv('f-com'))||0,
+    status,responsavel:fgv('f-resp'),midia:fgv('f-midia'),
+    desfecho:fgv('f-desfecho')||'A definir',
+    placa:fgv('f-placa'),cor:fgv('f-cor'),
+    tipoEntrega:fgv('f-tipent'),localEntrega:fgv('f-locent'),
+    dataPrevEntrega:fgv('f-entprev'),
+    indicacao:isInd,nomeIndicador:isInd?fgv('f-ind-nome'):'',
+    casaIndicacao:isInd?fgv('f-ind-casa'):'',observacoes:fgv('f-obs'),
+  });
+  clearForm();updFF();init();showSuccess(`Contrato ${novoId} salvo com sucesso!`);
 }
 
 // =================== TROCA DE ABA ===================
@@ -472,20 +677,13 @@ function swTab(tab,btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById(tab).classList.add('active');
   btn.classList.add('active');
+  document.getElementById('period-bar').classList.toggle('hidden',tab==='cadastro');
 }
 
-// =================== INICIALIZAÇÃO ===================
-function init(){
-  calcKpis();
-  buildGestao();
-  buildAnalitico();
-  renderAlerts();
-  renderTbl();
-  document.getElementById('lastupd').textContent='Aberto em '+new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-}
-
-updFF();
-init();
+// =================== INIT ===================
+function init(){calcKpis();buildGestao();buildAnalitico();renderAlerts();renderTbl();}
+document.getElementById('lastupd').textContent='Aberto em '+new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+buildPeriodFilter();updFF();init();
 </script>
 </body>
 </html>
