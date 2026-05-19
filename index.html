@@ -117,6 +117,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
     <button class="tab" onclick="swTab('operacional',this)"><i class="ti ti-list-details"></i> Operacional</button>
     <button class="tab" onclick="swTab('analitico',this)"><i class="ti ti-chart-dots"></i> Analítico</button>
     <button class="tab" id="tab-cadastro" onclick="swTab('cadastro',this)"><i class="ti ti-plus"></i> Cadastro</button>
+    <button class="tab" id="tab-relatorio" onclick="swTab('relatorio',this)"><i class="ti ti-clipboard-list"></i> Relatório Diário</button>
   </div>
   <div id="period-bar" class="period-bar">
     <i class="ti ti-calendar" style="color:var(--t3);font-size:13px"></i>
@@ -184,6 +185,22 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
     <div class="cbox" style="margin-bottom:1.2rem">
       <div class="ch-t">Contratos por unidade de entrega</div>
       <div id="wrap-local" style="position:relative"><canvas id="cLocal"></canvas></div>
+    </div>
+    <!-- CARDS RELATÓRIO DIÁRIO -->
+    <p class="sec-t" style="margin-top:.5rem">Relatórios diários</p>
+    <div class="cards" id="cards-relat">
+      <div class="card"><div class="lbl">Total de atendimentos</div><div class="val" id="k-atend">—</div><div class="sub">no período</div></div>
+      <div class="card"><div class="lbl">Taxa de conversão</div><div class="val" id="k-conv">—</div><div class="sub">atendimentos → assinados</div></div>
+      <div class="card"><div class="lbl">Média diária</div><div class="val" id="k-media-dia">—</div><div class="sub">novos atendimentos/dia</div></div>
+      <div class="card" style="border-color:rgba(226,75,74,.25);background:var(--dbg)"><div class="lbl" style="color:var(--dtx)">Reprovados crédito</div><div class="val" id="k-reprov" style="color:var(--dtx)">—</div><div class="sub" style="color:var(--dtx)">no período</div></div>
+    </div>
+    <div class="crow">
+      <div class="cbox"><div class="ch-t">Atendimentos por dia</div><div style="position:relative;height:180px"><canvas id="cAtendDia"></canvas></div></div>
+      <div class="cbox"><div class="ch-t">Funil de conversão (acumulado)</div><div style="position:relative;height:180px"><canvas id="cFunil"></canvas></div></div>
+    </div>
+    <div class="crow">
+      <div class="cbox"><div class="ch-t">Reprovados na análise de crédito por período</div><div style="position:relative;height:160px"><canvas id="cReprov"></canvas></div></div>
+      <div class="cbox"><div class="ch-t">Motoristas de app × Outros atendimentos</div><div style="position:relative;height:160px"><canvas id="cMotorista"></canvas></div></div>
     </div>
   </div>
   <!-- CADASTRO -->
@@ -278,6 +295,101 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
       </div>
     </div>
   </div>
+  <!-- ===== RELATÓRIO DIÁRIO ===== -->
+  <div id="relatorio" class="view">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <!-- FORMULÁRIO -->
+      <div>
+        <div class="form-wrap">
+          <div class="fsec">
+            <div class="fsec-t">Dados do relatório</div>
+            <div class="fg-grid">
+              <div class="fg"><label>Data *</label><input id="rd-data" type="date"></div>
+              <div class="fg"><label>Responsável *</label>
+                <select id="rd-resp">
+                  <option value="">Selecione...</option>
+                  <option>Gabriela L. Egídio</option>
+                  <option>Ulisses dos Santos</option>
+                  <option>Vendedor</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="fsec">
+            <div class="fsec-t">Atendimentos</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center">
+                <label style="font-size:12px;color:var(--t1)">Novos atendimentos</label>
+                <input id="rd-novos" type="number" min="0" value="0" style="width:70px;font-size:13px;font-weight:600;padding:5px 8px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);text-align:center;font-family:inherit">
+              </div>
+              <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center">
+                <label style="font-size:12px;color:var(--t1)">Cliente em fase de pesquisa</label>
+                <input id="rd-pesquisa" type="number" min="0" value="0" style="width:70px;font-size:13px;font-weight:600;padding:5px 8px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);text-align:center;font-family:inherit">
+              </div>
+              <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center">
+                <label style="font-size:12px;color:var(--t1)">Cliente sem retorno / ligação</label>
+                <input id="rd-semretorno" type="number" min="0" value="0" style="width:70px;font-size:13px;font-weight:600;padding:5px 8px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);text-align:center;font-family:inherit">
+              </div>
+              <div>
+                <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-bottom:5px">
+                  <label style="font-size:12px;color:var(--t1)">Aguardando assinatura de contrato</label>
+                  <input id="rd-aguardando" type="number" min="0" value="0" style="width:70px;font-size:13px;font-weight:600;padding:5px 8px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);text-align:center;font-family:inherit">
+                </div>
+                <input id="rd-aguardando-ids" type="text" placeholder="IDs separados por vírgula (ex: 1526389)" style="width:100%;font-size:11px;padding:5px 8px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg2);color:var(--t2);font-family:inherit">
+              </div>
+              <div>
+                <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-bottom:5px">
+                  <label style="font-size:12px;color:var(--t1)">Motorista de aplicativo</label>
+                  <input id="rd-motorista" type="number" min="0" value="0" style="width:70px;font-size:13px;font-weight:600;padding:5px 8px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);text-align:center;font-family:inherit">
+                </div>
+                <input id="rd-motorista-ids" type="text" placeholder="IDs separados por vírgula" style="width:100%;font-size:11px;padding:5px 8px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg2);color:var(--t2);font-family:inherit">
+              </div>
+              <div>
+                <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-bottom:5px">
+                  <label style="font-size:12px;color:var(--dtx)">Reprovado na análise de crédito</label>
+                  <input id="rd-reprov" type="number" min="0" value="0" style="width:70px;font-size:13px;font-weight:600;padding:5px 8px;border-radius:var(--rmd);border:0.5px solid var(--dbr);background:var(--dbg);color:var(--dtx);text-align:center;font-family:inherit">
+                </div>
+                <input id="rd-reprov-ids" type="text" placeholder="IDs separados por vírgula" style="width:100%;font-size:11px;padding:5px 8px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg2);color:var(--t2);font-family:inherit">
+              </div>
+              <div>
+                <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-bottom:5px">
+                  <label style="font-size:12px;color:var(--stx)">Contrato assinado</label>
+                  <input id="rd-assinado" type="number" min="0" value="0" style="width:70px;font-size:13px;font-weight:600;padding:5px 8px;border-radius:var(--rmd);border:0.5px solid var(--sbr);background:var(--sbg);color:var(--stx);text-align:center;font-family:inherit">
+                </div>
+                <input id="rd-assinado-ids" type="text" placeholder="IDs e observação (ex: 1358971 - Cliente antigo)" style="width:100%;font-size:11px;padding:5px 8px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg2);color:var(--t2);font-family:inherit">
+              </div>
+            </div>
+          </div>
+          <div class="fsec">
+            <div class="fsec-t">Observação</div>
+            <textarea id="rd-obs" rows="3" style="width:100%;font-size:12px;padding:7px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit;resize:vertical" placeholder="Observação do dia...">Os atendimentos em andamento não representam contratos confirmados e estão em fase de pesquisa, fazendo acompanhamento até decisão do cliente.</textarea>
+          </div>
+          <div class="form-footer">
+            <button class="btn" onclick="limparRelatorio()"><i class="ti ti-x"></i> Limpar</button>
+            <button class="btn btns" onclick="salvarRelatorio()"><i class="ti ti-device-floppy"></i> Salvar e Gerar</button>
+          </div>
+        </div>
+      </div>
+      <!-- PREVIEW WHATSAPP -->
+      <div>
+        <div class="cbox" style="height:100%;min-height:300px">
+          <div class="ch-t" style="display:flex;align-items:center;justify-content:space-between">
+            <span><i class="ti ti-brand-whatsapp" style="color:#25D366"></i> Preview WhatsApp</span>
+            <button id="btn-copy-wa" class="btn btns" style="font-size:11px;padding:4px 10px;display:none" onclick="copiarRelatorio()"><i class="ti ti-copy"></i> Copiar</button>
+          </div>
+          <pre id="rd-preview" style="font-size:12px;color:var(--t2);white-space:pre-wrap;font-family:inherit;line-height:1.7;margin-top:8px;min-height:200px">Preencha o formulário e clique em Salvar e Gerar...</pre>
+        </div>
+        <!-- HISTÓRICO -->
+        <div class="cbox" style="margin-top:12px">
+          <div class="ch-t"><i class="ti ti-history"></i> Histórico de relatórios</div>
+          <div id="rd-historico" style="font-size:12px;color:var(--t2);max-height:260px;overflow-y:auto">
+            <p style="color:var(--t3);font-size:11px;padding:8px 0">Carregando...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="footer">Grupo Allma Milazzo · Assinaturas · v5 · <span id="lastupd"></span></div>
 </div>
 
@@ -795,13 +907,227 @@ function confirmDelete(){
   showSuccess('Contrato ' + idExcluido + ' excluído.');
 }
 
+/* ====== RELATÓRIO DIÁRIO ====== */
+const COL_REL = 'relatorios';
+
+function rdVal(id){const el=document.getElementById(id);return el?el.value.trim():'';}
+function rdNum(id){return parseInt(document.getElementById(id)?.value)||0;}
+
+function gerarTextoWA(rd){
+  var BR='\n';
+  var parts=rd.data.split('-');var y=parts[0],m=parts[1],d=parts[2];
+  var dataFmt=d+'/'+m+'/'+y;
+  var respCurto=(rd.responsavel||'').split(' ')[0];
+  var txt='Relatório Diário de Atendimento – Assinatura'+BR;
+  txt+='Data: '+dataFmt+BR;
+  txt+='Responsável: '+respCurto+BR;
+  if(rd.novos>0) txt+='Novos atendimentos: '+rd.novos+BR;
+  if(rd.pesquisa>0) txt+='Cliente em fase de pesquisa: '+rd.pesquisa+BR;
+  if(rd.semretorno>0) txt+='Cliente sem retorno/ligação: '+rd.semretorno+BR;
+  if(rd.aguardando>0){txt+='Aguardando assinatura de contrato: '+rd.aguardando;if(rd.aguardandoIds)txt+=' ('+rd.aguardandoIds+')';txt+=BR;}
+  if(rd.motorista>0){txt+='Motorista de aplicativo: '+rd.motorista;if(rd.motoristaIds)txt+=' ('+rd.motoristaIds+')';txt+=BR;}
+  if(rd.reprov>0){txt+='Cliente reprovado na analise de credito: '+rd.reprov;if(rd.reprovIds)txt+=' ('+rd.reprovIds+')';txt+=BR;}
+  if(rd.assinado>0){txt+='Contrato assinado: '+rd.assinado;if(rd.assinadoIds)txt+=' ('+rd.assinadoIds+')';txt+=BR;}
+  if(rd.obs) txt+='Observação: '+rd.obs;
+  return txt;
+}
+function gerarPreview(){
+  const data=rdVal('rd-data');
+  const resp=rdVal('rd-resp');
+  if(!data||!resp){
+    document.getElementById('rd-preview').textContent='Preencha data e responsável para ver o preview...';
+    document.getElementById('btn-copy-wa').style.display='none';
+    return;
+  }
+  const rd={
+    data,responsavel:resp,
+    novos:rdNum('rd-novos'),pesquisa:rdNum('rd-pesquisa'),semretorno:rdNum('rd-semretorno'),
+    aguardando:rdNum('rd-aguardando'),aguardandoIds:rdVal('rd-aguardando-ids'),
+    motorista:rdNum('rd-motorista'),motoristaIds:rdVal('rd-motorista-ids'),
+    reprov:rdNum('rd-reprov'),reprovIds:rdVal('rd-reprov-ids'),
+    assinado:rdNum('rd-assinado'),assinadoIds:rdVal('rd-assinado-ids'),
+    obs:rdVal('rd-obs'),
+  };
+  document.getElementById('rd-preview').textContent=gerarTextoWA(rd);
+  document.getElementById('btn-copy-wa').style.display='inline-flex';
+}
+
+// Atualiza preview ao digitar
+['rd-data','rd-resp','rd-novos','rd-pesquisa','rd-semretorno','rd-aguardando','rd-aguardando-ids','rd-motorista','rd-motorista-ids','rd-reprov','rd-reprov-ids','rd-assinado','rd-assinado-ids','rd-obs'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el)el.addEventListener('input',gerarPreview);
+});
+
+function copiarRelatorio(){
+  const txt=document.getElementById('rd-preview').textContent;
+  navigator.clipboard.writeText(txt).then(()=>showSuccess('Texto copiado! Cole no WhatsApp.')).catch(()=>{
+    // Fallback
+    const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showSuccess('Texto copiado!');
+  });
+}
+
+async function salvarRelatorio(){
+  const data=rdVal('rd-data');const resp=rdVal('rd-resp');
+  if(!data){alert('Informe a data do relatório.');return;}
+  if(!resp){alert('Informe o responsável.');return;}
+  const rd={
+    data,responsavel:resp,
+    novos:rdNum('rd-novos'),pesquisa:rdNum('rd-pesquisa'),semretorno:rdNum('rd-semretorno'),
+    aguardando:rdNum('rd-aguardando'),aguardandoIds:rdVal('rd-aguardando-ids'),
+    motorista:rdNum('rd-motorista'),motoristaIds:rdVal('rd-motorista-ids'),
+    reprov:rdNum('rd-reprov'),reprovIds:rdVal('rd-reprov-ids'),
+    assinado:rdNum('rd-assinado'),assinadoIds:rdVal('rd-assinado-ids'),
+    obs:rdVal('rd-obs'),
+    criadoEm:new Date().toISOString(),
+  };
+  const docId=data+'_'+(resp.split(' ')[0]);
+  try{
+    await db.collection(COL_REL).doc(docId).set(rd);
+    showSuccess('Relatório salvo!');
+    gerarPreview();
+    carregarHistorico();
+  }catch(e){
+    alert('Erro ao salvar: '+e.message);
+  }
+}
+
+function limparRelatorio(){
+  ['rd-novos','rd-pesquisa','rd-semretorno','rd-aguardando','rd-motorista','rd-reprov','rd-assinado'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='0';});
+  ['rd-aguardando-ids','rd-motorista-ids','rd-reprov-ids','rd-assinado-ids'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  gerarPreview();
+}
+
+let relatorios=[];
+function carregarHistorico(){
+  db.collection(COL_REL).orderBy('data','desc').limit(30).get().then(snap=>{
+    relatorios=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderHistorico();
+    buildAnaliticoRelat();
+  }).catch(e=>console.error('histórico erro:',e));
+}
+
+function renderHistorico(){
+  const el=document.getElementById('rd-historico');if(!el)return;
+  if(!relatorios.length){el.innerHTML='<p style="color:var(--t3);font-size:11px;padding:8px 0">Nenhum relatório salvo ainda.</p>';return;}
+  el.innerHTML=relatorios.map(r=>{
+    const [y,m,d]=r.data.split('-');
+    return`<div style="padding:8px 0;border-bottom:0.5px solid var(--b1);cursor:pointer" onclick="carregarRelatorio('${r.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-weight:500;color:var(--t1)">${d}/${m}/${y} — ${(r.responsavel||'').split(' ')[0]}</span>
+        <span style="font-size:10px;color:var(--t3)">${r.novos||0} atend.</span>
+      </div>
+      <div style="font-size:10px;color:var(--t3);margin-top:2px">
+        ${r.assinado?'✅ '+r.assinado+' assinado(s) ':''} ${r.reprov?'🔴 '+r.reprov+' reprovado(s)':''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function carregarRelatorio(id){
+  const r=relatorios.find(x=>x.id===id);if(!r)return;
+  const el=id=>document.getElementById(id);
+  if(el('rd-data'))el('rd-data').value=r.data;
+  if(el('rd-resp'))el('rd-resp').value=r.responsavel||'';
+  if(el('rd-novos'))el('rd-novos').value=r.novos||0;
+  if(el('rd-pesquisa'))el('rd-pesquisa').value=r.pesquisa||0;
+  if(el('rd-semretorno'))el('rd-semretorno').value=r.semretorno||0;
+  if(el('rd-aguardando'))el('rd-aguardando').value=r.aguardando||0;
+  if(el('rd-aguardando-ids'))el('rd-aguardando-ids').value=r.aguardandoIds||'';
+  if(el('rd-motorista'))el('rd-motorista').value=r.motorista||0;
+  if(el('rd-motorista-ids'))el('rd-motorista-ids').value=r.motoristaIds||'';
+  if(el('rd-reprov'))el('rd-reprov').value=r.reprov||0;
+  if(el('rd-reprov-ids'))el('rd-reprov-ids').value=r.reprovIds||'';
+  if(el('rd-assinado'))el('rd-assinado').value=r.assinado||0;
+  if(el('rd-assinado-ids'))el('rd-assinado-ids').value=r.assinadoIds||'';
+  if(el('rd-obs'))el('rd-obs').value=r.obs||'';
+  gerarPreview();
+  showSuccess('Relatório de '+r.data+' carregado.');
+}
+
+function buildAnaliticoRelat(){
+  if(!relatorios.length){
+    ['k-atend','k-conv','k-media-dia','k-reprov'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});
+    return;
+  }
+  // Filtrar pelo período selecionado
+  let rFilt=relatorios;
+  if(selectedPeriod){
+    rFilt=relatorios.filter(r=>(r.data||'').startsWith(selectedPeriod));
+  }
+  const totalAtend=rFilt.reduce((s,r)=>s+(r.novos||0),0);
+  const totalAssin=rFilt.reduce((s,r)=>s+(r.assinado||0),0);
+  const totalReprov=rFilt.reduce((s,r)=>s+(r.reprov||0),0);
+  const dias=[...new Set(rFilt.map(r=>r.data))].length||1;
+  const conv=totalAtend>0?Math.round(totalAssin/totalAtend*100):0;
+
+  document.getElementById('k-atend').textContent=totalAtend;
+  document.getElementById('k-conv').textContent=conv+'%';
+  document.getElementById('k-media-dia').textContent=(totalAtend/dias).toFixed(1);
+  document.getElementById('k-reprov').textContent=totalReprov;
+
+  // Gráfico: atendimentos por dia
+  const diasOrdenados=[...new Set(rFilt.map(r=>r.data))].sort();
+  const atendsGab=diasOrdenados.map(d=>rFilt.filter(r=>r.data===d&&r.responsavel.includes('Gabriela')).reduce((s,r)=>s+(r.novos||0),0));
+  const atendsUli=diasOrdenados.map(d=>rFilt.filter(r=>r.data===d&&r.responsavel.includes('Ulisses')).reduce((s,r)=>s+(r.novos||0),0));
+  const atendsOut=diasOrdenados.map(d=>rFilt.filter(r=>r.data===d&&!r.responsavel.includes('Gabriela')&&!r.responsavel.includes('Ulisses')).reduce((s,r)=>s+(r.novos||0),0));
+  const labelsDias=diasOrdenados.map(d=>{const[y,m,di]=d.split('-');return`${di}/${m}`;});
+
+  mkChart('cAtendDia',{type:'bar',
+    data:{labels:labelsDias,datasets:[
+      {label:'Gabriela',data:atendsGab,backgroundColor:'#378ADD',borderWidth:0,borderRadius:3},
+      {label:'Ulisses',data:atendsUli,backgroundColor:'#1D9E75',borderWidth:0,borderRadius:3},
+      {label:'Outros',data:atendsOut,backgroundColor:'#888780',borderWidth:0,borderRadius:3},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.raw}}},
+    scales:{x:{grid:{display:false},ticks:{font:{size:9}}},y:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:9},stepSize:1}}},stacked:false}});
+
+  // Funil de conversão
+  const totalPesq=rFilt.reduce((s,r)=>s+(r.pesquisa||0),0);
+  const totalAguard=rFilt.reduce((s,r)=>s+(r.aguardando||0),0);
+  const funilLabels=['Novos atendimentos','Em pesquisa','Aguardando assinatura','Contrato assinado'];
+  const funilData=[totalAtend,totalPesq,totalAguard,totalAssin];
+  mkChart('cFunil',{type:'bar',
+    data:{labels:funilLabels,datasets:[{data:funilData,backgroundColor:['#378ADD','#EF9F27','#534AB7','#1D9E75'],borderWidth:0,borderRadius:4}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw}}},
+    scales:{x:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:9}}},y:{grid:{display:false},ticks:{font:{size:9}}}}}});
+
+  // Reprovados por dia
+  const reprovDia=diasOrdenados.map(d=>rFilt.filter(r=>r.data===d).reduce((s,r)=>s+(r.reprov||0),0));
+  mkChart('cReprov',{type:'bar',
+    data:{labels:labelsDias,datasets:[{data:reprovDia,backgroundColor:'#E24B4A',borderWidth:0,borderRadius:3}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw+' reprovado(s)'}}},
+    scales:{x:{grid:{display:false},ticks:{font:{size:9}}},y:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:9},stepSize:1}}}}});
+
+  // Motoristas por dia
+  const motorDia=diasOrdenados.map(d=>rFilt.filter(r=>r.data===d).reduce((s,r)=>s+(r.motorista||0),0));
+  const outrosDia=diasOrdenados.map((d,i)=>Math.max(0,(atendsGab[i]||0)+(atendsUli[i]||0)+(atendsOut[i]||0)-(motorDia[i]||0)));
+  mkChart('cMotorista',{type:'bar',
+    data:{labels:labelsDias,datasets:[
+      {label:'Motoristas app',data:motorDia,backgroundColor:'#7C3AED',borderWidth:0,borderRadius:3},
+      {label:'Outros',data:outrosDia,backgroundColor:'#d1d5db',borderWidth:0,borderRadius:3},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.raw}}},
+    scales:{x:{grid:{display:false},ticks:{font:{size:9}}},y:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:9},stepSize:1}},stacked:true}}});
+}
+
 /* ABAS */
-function swTab(tab,btn){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById(tab).classList.add('active');btn.classList.add('active');document.getElementById('period-bar').classList.toggle('hidden',tab==='cadastro');}
+function swTab(tab,btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('period-bar').classList.toggle('hidden',tab==='cadastro'||tab==='relatorio');
+  if(tab==='relatorio'){carregarHistorico();gerarPreview();}
+  if(tab==='analitico'){buildAnaliticoRelat();}
+}
 function swTabById(tab){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById(tab).classList.add('active');document.getElementById('tab-cadastro').classList.add('active');document.getElementById('period-bar').classList.add('hidden');}
 
 /* INIT */
 function init(){calcKpis();buildGestao();buildAnalitico();renderAlerts();renderTbl();}
 initDark();
+// Data de hoje no formulário de relatório
+const rdDataEl=document.getElementById('rd-data');
+if(rdDataEl)rdDataEl.value=new Date().toISOString().split('T')[0];
 buildPeriodFilter();
 document.getElementById('lastupd').textContent='Aberto em '+new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
 // Tenta carregar do cache local enquanto Firebase conecta
@@ -809,6 +1135,8 @@ if(loadLS()&&contratos.length>0){updSrcLbl();updFF();init();fbStatus('conectando
 else{document.getElementById('src-lbl').innerHTML='<i class="ti ti-cloud"></i> Conectando ao Firebase...';}
 // Inicia sincronização em tempo real
 startRealtimeSync();
+// Carrega histórico de relatórios
+setTimeout(carregarHistorico, 1500);
 </script>
 </body>
 </html>
