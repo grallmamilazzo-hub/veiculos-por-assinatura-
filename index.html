@@ -100,6 +100,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
     <button class="btn" onclick="document.getElementById('file-input').click()"><i class="ti ti-upload"></i> Importar</button>
     <button class="btn btnr" onclick="exportPDF()"><i class="ti ti-file-type-pdf"></i> PDF</button>
     <button class="btn" onclick="exportXLS()"><i class="ti ti-table-export"></i> Excel</button>
+    <button class="btn btnp" onclick="exportDash()"><i class="ti ti-code"></i> Exportar HTML</button>
     <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleImport(this)">
   </div>
 </header>
@@ -179,16 +180,6 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
     <div class="crow">
       <div class="cbox"><div class="ch-t">Distribuição de prazos (meses)</div><div style="position:relative;height:170px"><canvas id="cPrazos"></canvas></div></div>
       <div class="cbox"><div class="ch-t">Valor médio mensal: PF vs PJ por fornecedor</div><div class="leg" id="lg-vt"></div><div style="position:relative;height:170px"><canvas id="cVTipo"></canvas></div></div>
-    </div>
-    <div class="crow" style="margin-bottom:1.2rem">
-      <div class="cbox">
-        <div class="ch-t">Contratos por vendedor (volume)</div>
-        <div style="position:relative" id="wrap-vend-vol"><canvas id="cVendVol"></canvas></div>
-      </div>
-      <div class="cbox">
-        <div class="ch-t">Receita mensal gerada por vendedor (R$)</div>
-        <div style="position:relative" id="wrap-vend-rec"><canvas id="cVendRec"></canvas></div>
-      </div>
     </div>
     <div class="cbox" style="margin-bottom:1.2rem">
       <div class="ch-t">Contratos por unidade de entrega</div>
@@ -290,20 +281,6 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
   <div class="footer">Grupo Allma Milazzo · Assinaturas · v5 · <span id="lastupd"></span></div>
 </div>
 
-<!-- MODAL SENHA EDIÇÃO -->
-<div id="senha-edit-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:350;align-items:center;justify-content:center">
-  <div style="background:var(--bg1);border-radius:var(--rlg);padding:24px;max-width:320px;width:90%;border:0.5px solid var(--b2)">
-    <div style="font-size:14px;font-weight:600;color:var(--t1);margin-bottom:6px;display:flex;align-items:center;gap:7px"><i class="ti ti-lock" style="color:var(--ok)"></i> Autenticação necessária</div>
-    <div style="font-size:12px;color:var(--t2);margin-bottom:14px">Digite a senha para editar o contrato <strong id="se-id-label"></strong></div>
-    <input id="se-senha" type="password" placeholder="Senha" style="width:100%;font-size:13px;padding:8px 10px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);margin-bottom:10px;font-family:inherit" onkeydown="if(event.key==='Enter')confirmarSenhaEdit()">
-    <div id="se-err" style="font-size:11px;color:#E24B4A;margin-bottom:10px;display:none">Senha incorreta.</div>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button class="btn" onclick="fecharSenhaEdit()"><i class="ti ti-x"></i> Cancelar</button>
-      <button class="btn btnp" onclick="confirmarSenhaEdit()"><i class="ti ti-lock-open"></i> Confirmar</button>
-    </div>
-  </div>
-</div>
-
 <!-- MODAL EDIÇÃO -->
 <div id="edit-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 12px">
   <div id="edit-modal-box" style="background:var(--bg1);border-radius:var(--rlg);width:100%;max-width:760px;border:0.5px solid var(--b2);margin:auto">
@@ -402,11 +379,29 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
     </div>
   </div>
 </div>
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<!-- Charts & Utils -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
+/* ===== FIREBASE CONFIG ===== */
+const firebaseConfig = {
+  apiKey: "AIzaSyDK9hI0krrex8plnfeWBz053hNWah_xiv0",
+  authDomain: "allma-assinaturas.firebaseapp.com",
+  projectId: "allma-assinaturas",
+  storageBucket: "allma-assinaturas.firebasestorage.app",
+  messagingSenderId: "409103732900",
+  appId: "1:409103732900:web:37f8348732dbd775f69631"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const COL = 'contratos';
+
+/* ===== LOCALSTORAGE KEYS ===== */
 const LS_KEY='allma_assin_v5',LS_TS='allma_assin_v5_ts',LS_DARK='allma_dark_v5';
 const KNOWNFORN=['FLUA','SIGN & DRIVE','BYD MAIS','ASSINE CAR'];
 const CF={'FLUA':'#378ADD','SIGN & DRIVE':'#1D9E75','BYD MAIS':'#EF9F27','ASSINE CAR':'#D4537E','Outro':'#888780'};
@@ -424,9 +419,81 @@ function toggleDark(){const el=document.documentElement,isDark=el.hasAttribute('
 function updDarkBtn(){const el=document.documentElement,isDark=el.hasAttribute('data-dark'),isLight=el.hasAttribute('data-light');const ico=document.getElementById('ico-dark'),lbl=document.getElementById('lbl-dark');if(isDark){ico.className='ti ti-sun';lbl.textContent='Claro';}else if(isLight){ico.className='ti ti-brightness-auto';lbl.textContent='Auto';}else{ico.className='ti ti-moon';lbl.textContent='Escuro';}}
 
 /* LOCALSTORAGE */
+/* ───── FIREBASE CRUD ───── */
+function fbStatus(msg, ok=true){
+  const el=document.getElementById('ls-badge');
+  if(!el)return;
+  el.innerHTML=ok
+    ?'<i class="ti ti-cloud-check"></i> '+msg
+    :'<i class="ti ti-cloud-off"></i> '+msg;
+}
+
+// Salva UM contrato no Firestore (upsert pelo ID)
+async function fbSave(contrato){
+  try{
+    const id = String(contrato.id);
+    await db.collection(COL).doc(id).set(contrato);
+    fbStatus('salvo '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));
+  }catch(e){
+    console.error('fbSave erro:',e);
+    fbStatus('erro ao salvar',false);
+  }
+}
+
+// Exclui um contrato do Firestore
+async function fbDelete(id){
+  try{
+    await db.collection(COL).doc(String(id)).delete();
+    fbStatus('excluído');
+  }catch(e){
+    console.error('fbDelete erro:',e);
+    fbStatus('erro ao excluir',false);
+  }
+}
+
+// Listener em tempo real — atualiza contratos em qualquer navegador
+function startRealtimeSync(){
+  db.collection(COL).onSnapshot(snapshot=>{
+    contratos = snapshot.docs.map(d=>({...d.data(),id:d.id}));
+    // Cache local
+    try{localStorage.setItem(LS_KEY,JSON.stringify(contratos));localStorage.setItem(LS_TS,new Date().toISOString());}catch(e){}
+    updSrcLbl();updFF();init();
+    const n=contratos.length;
+    fbStatus(n+' contrato(s) sincronizado'+(n===1?'':'s'));
+  },err=>{
+    console.error('onSnapshot erro:',err);
+    fbStatus('sem conexão — dados locais',false);
+    // Fallback para localStorage
+    try{const s=localStorage.getItem(LS_KEY);if(s){const p=JSON.parse(s);if(Array.isArray(p)&&p.length>0){contratos=p;updSrcLbl();updFF();init();}}}catch(e){}
+  });
+}
+
+// Importa array inteiro para o Firestore (batch)
+async function fbImportAll(lista){
+  fbStatus('enviando '+lista.length+' contratos...',true);
+  const batch = db.batch();
+  lista.forEach(c=>{
+    const ref = db.collection(COL).doc(String(c.id));
+    batch.set(ref, c);
+  });
+  try{
+    await batch.commit();
+    fbStatus(lista.length+' importados!');
+  }catch(e){
+    console.error('fbImportAll erro:',e);
+    fbStatus('erro na importação',false);
+  }
+}
+
+/* ───── LOCALSTORAGE (cache/fallback) ───── */
 function saveLS(){try{localStorage.setItem(LS_KEY,JSON.stringify(contratos));localStorage.setItem(LS_TS,new Date().toISOString());updLSBadge();}catch(e){}}
 function loadLS(){try{const s=localStorage.getItem(LS_KEY);if(s){const p=JSON.parse(s);if(Array.isArray(p)&&p.length>0){contratos=p;return true;}}}catch(e){}return false;}
-function updLSBadge(){const ts=localStorage.getItem(LS_TS),el=document.getElementById('ls-badge');if(!ts||contratos.length===0){el.innerHTML='<i class="ti ti-database-off"></i> sem dados salvos';return;}const d=new Date(ts);el.innerHTML=`<i class="ti ti-device-floppy"></i> salvo ${d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}`;}
+function updLSBadge(){
+  // Mantida para compatibilidade — badge agora controlado por fbStatus()
+  const el=document.getElementById('ls-badge');
+  if(!el)return;
+  if(contratos.length===0){el.innerHTML='<i class="ti ti-cloud"></i> conectando...';}
+}
 
 /* UTILS */
 function addM(d,m){const r=new Date(d);r.setMonth(r.getMonth()+m);return r}
@@ -458,7 +525,7 @@ function mRest(c){
 }
 function fmt(v){return'R$\u00a0'+Math.round(v).toLocaleString('pt-BR')}
 function fmtK(v){return v>=1000?'R$'+Math.round(v/1000)+'k':'R$'+Math.round(v)}
-function normModel(s){if(!s)return s;return s.trim().toUpperCase();}
+function normModel(s){if(!s)return s;const t=s.trim();return t.charAt(0).toUpperCase()+t.slice(1).toLowerCase();}
 function maskBRL(el){
   // Formata em tempo real como moeda BR: 1234.56 → 1.234,56
   let v=el.value.replace(/\D/g,'');
@@ -503,19 +570,7 @@ function buildGestao(){const d=getFiltrado();const fkeys=Object.keys(CF);const f
 /* ANALÍTICO */
 function buildAnalitico(){const d=getFiltrado();const total=d.length||1;document.getElementById('k-prazo').textContent=Math.round(d.reduce((s,c)=>s+(c.prazo||0),0)/total)+' m';document.getElementById('k-vmedio').textContent=fmtK(Math.round(d.reduce((s,c)=>s+c.valorMensal,0)/total));document.getElementById('k-pctpj').textContent=Math.round(d.filter(c=>c.tipo==='PJ').length/total*100)+'%';const modMap={};d.forEach(c=>{const nm=normModel(c.modelo);modMap[nm]=(modMap[nm]||0)+1;});const sorted=Object.entries(modMap).sort((a,b)=>b[1]-a[1]);if(sorted.length){document.getElementById('k-topmod').textContent=sorted[0][0];document.getElementById('k-topmod-s').textContent=sorted[0][1]+' contrato(s)';}const top6=sorted.slice(0,6);document.getElementById('wrap-mod').style.height=Math.max(130,top6.length*36+42)+'px';mkChart('cMod',{type:'bar',data:{labels:top6.map(e=>e[0]),datasets:[{data:top6.map(e=>e[1]),backgroundColor:'#378ADD',borderWidth:0,borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:10},stepSize:1}},y:{grid:{display:false},ticks:{font:{size:10},autoSkip:false}}}}});const fkeys=Object.keys(CF);const vForn=fkeys.map(k=>{const g=d.filter(c=>fornGroup(c)===k);return g.length?Math.round(g.reduce((s,c)=>s+c.valorMensal,0)/g.length):0;});mkChart('cVForn',{type:'bar',data:{labels:fkeys,datasets:[{data:vForn,backgroundColor:fkeys.map(k=>CF[k]),borderWidth:0,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)}}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:10},callback:v=>fmtK(v)}}}}});const prMap={};d.forEach(c=>{const k=(c.prazo||0)+'m';prMap[k]=(prMap[k]||0)+1;});const prS=Object.entries(prMap).sort((a,b)=>parseInt(a)-parseInt(b));mkChart('cPrazos',{type:'bar',data:{labels:prS.map(e=>e[0]),datasets:[{data:prS.map(e=>e[1]),backgroundColor:'#534AB7',borderWidth:0,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:10},stepSize:1}}}}});document.getElementById('lg-vt').innerHTML='<span><i style="background:#378ADD"></i>PF</span><span><i style="background:#D85A30"></i>PJ</span>';const vPF=fkeys.map(k=>{const g=d.filter(c=>fornGroup(c)===k&&c.tipo==='PF');return g.length?Math.round(g.reduce((s,c)=>s+c.valorMensal,0)/g.length):0;});const vPJ=fkeys.map(k=>{const g=d.filter(c=>fornGroup(c)===k&&c.tipo==='PJ');return g.length?Math.round(g.reduce((s,c)=>s+c.valorMensal,0)/g.length):0;});mkChart('cVTipo',{type:'bar',data:{labels:fkeys,datasets:[{label:'PF',data:vPF,backgroundColor:'#378ADD',borderWidth:0,borderRadius:3},{label:'PJ',data:vPJ,backgroundColor:'#D85A30',borderWidth:0,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmt(ctx.raw)}}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:10},callback:v=>fmtK(v)}}}}});
 /* chart local entrega v5 */
-const locMap={};d.forEach(c=>{const loc=c.localEntrega||'Não informado';if(loc&&loc!=='Não informado')locMap[loc]=(locMap[loc]||0)+1;});const locS=Object.entries(locMap).sort((a,b)=>b[1]-a[1]);const wl=document.getElementById('wrap-local');if(!locS.length){wl.style.height='44px';wl.innerHTML='<p style="font-size:11px;color:var(--t3);padding:12px 0">Nenhum local de entrega informado ainda.</p>';if(CH['cLocal']){CH['cLocal'].destroy();delete CH['cLocal'];}return;}wl.style.height=Math.max(140,locS.length*34+44)+'px';if(!document.getElementById('cLocal')){wl.innerHTML='<canvas id="cLocal"></canvas>';}mkChart('cLocal',{type:'bar',data:{labels:locS.map(e=>e[0]),datasets:[{data:locS.map(e=>e[1]),backgroundColor:locS.map((_,i)=>PALETTE[i%PALETTE.length]),borderWidth:0,borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw+' contrato(s)'}}},scales:{x:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:10},stepSize:1}},y:{grid:{display:false},ticks:{font:{size:10},autoSkip:false}}}}});
-/* chart vendedores v5.4 */
-const RESP_FIXOS=['Gabriela L. Egídio','Ulisses dos Santos','Vendedor'];
-const allResps=[...new Set([...RESP_FIXOS,...d.map(c=>c.responsavel||'Não informado').filter(r=>r&&r!=='Não informado')])];
-const vendVol=allResps.map(r=>d.filter(c=>(c.responsavel||'Não informado')===r).length);
-const vendRec=allResps.map(r=>Math.round(d.filter(c=>(c.responsavel||'Não informado')===r).reduce((s,c)=>s+c.valorMensal,0)));
-const wvv=document.getElementById('wrap-vend-vol');
-const wvr=document.getElementById('wrap-vend-rec');
-const vH=Math.max(130,allResps.length*38+44);
-if(wvv){wvv.style.height=vH+'px';}
-if(wvr){wvr.style.height=vH+'px';}
-mkChart('cVendVol',{type:'bar',data:{labels:allResps,datasets:[{data:vendVol,backgroundColor:allResps.map((_,i)=>PALETTE[i%PALETTE.length]),borderWidth:0,borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw+' contrato(s)'}}},scales:{x:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:10},stepSize:1}},y:{grid:{display:false},ticks:{font:{size:10},autoSkip:false}}}}});
-mkChart('cVendRec',{type:'bar',data:{labels:allResps,datasets:[{data:vendRec,backgroundColor:allResps.map((_,i)=>PALETTE[i%PALETTE.length]),borderWidth:0,borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)}}},scales:{x:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:10},callback:v=>fmtK(v)}},y:{grid:{display:false},ticks:{font:{size:10},autoSkip:false}}}}});}
+const locMap={};d.forEach(c=>{const loc=c.localEntrega||'Não informado';if(loc&&loc!=='Não informado')locMap[loc]=(locMap[loc]||0)+1;});const locS=Object.entries(locMap).sort((a,b)=>b[1]-a[1]);const wl=document.getElementById('wrap-local');if(!locS.length){wl.style.height='44px';wl.innerHTML='<p style="font-size:11px;color:var(--t3);padding:12px 0">Nenhum local de entrega informado ainda.</p>';if(CH['cLocal']){CH['cLocal'].destroy();delete CH['cLocal'];}return;}wl.style.height=Math.max(140,locS.length*34+44)+'px';if(!document.getElementById('cLocal')){wl.innerHTML='<canvas id="cLocal"></canvas>';}mkChart('cLocal',{type:'bar',data:{labels:locS.map(e=>e[0]),datasets:[{data:locS.map(e=>e[1]),backgroundColor:locS.map((_,i)=>PALETTE[i%PALETTE.length]),borderWidth:0,borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw+' contrato(s)'}}},scales:{x:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:10},stepSize:1}},y:{grid:{display:false},ticks:{font:{size:10},autoSkip:false}}}}});}
 
 /* ALERTAS */
 function renderAlerts(){const ativos=getFiltrado().filter(c=>isAtivo(c));const crit=ativos.filter(c=>mRest(c)<=1);const atenc=ativos.filter(c=>mRest(c)>1&&mRest(c)<=2);let h='';if(crit.length)h+=`<div class="abox ac"><div class="at"><i class="ti ti-alert-circle"></i> Vencendo em até 30 dias — ${crit.length} contrato(s)</div><div class="alist">${crit.map(c=>`<span class="atag">${c.id} · ${c.cliente.split(' ')[0]} (${mRest(c)}m)</span>`).join('')}</div></div>`;if(atenc.length)h+=`<div class="abox aw"><div class="at"><i class="ti ti-alert-triangle"></i> Vencem em 31–60 dias — ${atenc.length} contrato(s)</div><div class="alist">${atenc.map(c=>`<span class="atag">${c.id} · ${c.cliente.split(' ')[0]} (${mRest(c)}m)</span>`).join('')}</div></div>`;if(!crit.length&&!atenc.length)h=`<div class="abox aok"><div class="at"><i class="ti ti-circle-check"></i> Nenhum vencimento próximo.</div></div>`;document.getElementById('alerts').innerHTML=h;}
@@ -554,7 +609,7 @@ function renderTbl(){
       <td style="font-size:10px;color:var(--t2)">${c.desfecho||'—'}</td>
       <td style="font-size:11px;${vencStyle}">${venc}</td>
       <td>
-        <button class="btn-edit" onclick="pedirSenhaParaEditar('${c.id}')" title="Editar"><i class="ti ti-pencil"></i></button>
+        <button class="btn-edit" onclick="abrirModalEdit('${c.id}')" title="Editar"><i class="ti ti-pencil"></i></button>
         <button class="btn-edit" data-action="delete" data-id="${c.id}" title="Excluir" style="margin-left:3px;color:#E24B4A;border-color:rgba(226,75,74,.3)"><i class="ti ti-trash"></i></button>
       </td>
     </tr>`;
@@ -569,12 +624,18 @@ function updFF(){const sel=document.getElementById('ff');const uniq=[...new Set(
 function handleImport(inp){const file=inp.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});if(rows.length<2){alert('Arquivo sem dados.');return;}const headers=rows[0].map(h=>String(h).toLowerCase().trim());const dataRows=rows.slice(1).filter(r=>r.some(c=>c!==''));function gc(alts){for(const a of alts){const i=headers.findIndex(h=>h.includes(a));if(i>=0)return i;}return -1;}function gv(row,alts){const i=gc(alts);return i>=0?row[i]:'';}function fmtD(d){if(!d)return'';if(d instanceof Date)return d.toISOString().split('T')[0];return String(d).split('T')[0];}const parsed=dataRows.map((row,idx)=>({id:String(gv(row,['id contrato','contrato','id'])||('IMP-'+(idx+1))),cliente:gv(row,['cliente','nome'])||'',cpf:gv(row,['cpf','cnpj'])||'',chassi:gv(row,['chassi'])||'',modelo:String(gv(row,['modelo'])||'').trim(),assinatura:fmtD(gv(row,['assinatura'])),prazo:parseInt(gv(row,['prazo']))||0,entregaEfetiva:fmtD(gv(row,['efetiva','entrega efetiva','data efetiva','entrega']))||'',valorMensal:pNum(gv(row,['valor mensal','valor'])),fornecedor:gv(row,['fornecedor'])||'',tipo:String(gv(row,['tipo de pessoa','tipo pessoa','pf/pj','tipo'])).toUpperCase().includes('J')?'PJ':'PF',comissaoPct:pNum(gv(row,['comiss'])),status:gv(row,['status'])||'Assinado',responsavel:gv(row,['respons'])||'',midia:gv(row,['midia','mídia','origem'])||'',desfecho:gv(row,['desfecho'])||'A definir',placa:gv(row,['placa'])||'',qtdCarros:parseInt(gv(row,['qtd','quantidade','carros']))||1,cor:'',tipoEntrega:'',localEntrega:gv(row,['local'])||'',dataPrevEntrega:'',indicacao:false,nomeIndicador:'',casaIndicacao:'',observacoes:gv(row,['obs'])||'',}));const VALID=['Assinado','Ativo','Cancelado','Aguardando Entrega','Encerrado'];const issues=[];parsed.forEach((c,i)=>{const ln=i+2;if(!c.cliente)issues.push(`Linha ${ln} (${c.id}): "Cliente" vazio`);if(!c.modelo)issues.push(`Linha ${ln} (${c.id}): "Modelo" vazio`);if(!c.fornecedor)issues.push(`Linha ${ln} (${c.id}): "Fornecedor" vazio`);if(!c.valorMensal)issues.push(`Linha ${ln} (${c.id}): Valor mensal vazio`);if(!c.prazo)issues.push(`Linha ${ln} (${c.id}): Prazo vazio`);if(!c.assinatura)issues.push(`Linha ${ln} (${c.id}): Data assinatura vazia`);if(c.status&&!VALID.includes(c.status))issues.push(`Linha ${ln} (${c.id}): Status inválido`);});if(issues.length){pendingImport={data:parsed,fileName:file.name};document.getElementById('val-area').innerHTML=`<div class="val-outer"><div class="val-title"><i class="ti ti-alert-triangle"></i> ${issues.length} problema(s) em ${parsed.length} contrato(s)</div><ul class="val-list">${issues.map(i=>`<li>${i}</li>`).join('')}</ul><div class="val-acts"><button class="btn" onclick="cancelImport()"><i class="ti ti-x"></i> Cancelar</button><button class="btn btnp" onclick="confirmImport()"><i class="ti ti-check"></i> Importar mesmo assim</button></div></div>`;}else{applyImport(parsed,file.name);}}catch(err){alert('Erro: '+err.message);}};reader.readAsArrayBuffer(file);inp.value='';}
 function confirmImport(){if(pendingImport){applyImport(pendingImport.data,pendingImport.fileName);pendingImport=null;}}
 function cancelImport(){document.getElementById('val-area').innerHTML='';pendingImport=null;}
-function applyImport(data,fileName){contratos=data;document.getElementById('val-area').innerHTML='';updSrcLbl();updFF();saveLS();init();showSuccess(`${contratos.length} contratos importados!`);}
+function applyImport(data,fileName){
+  contratos=data;
+  document.getElementById('val-area').innerHTML='';
+  showSuccess(contratos.length+' contratos sendo enviados ao Firebase...');
+  fbImportAll(contratos);  // Listener atualiza tela automaticamente
+}
 
 /* EXPORTAR EXCEL */
 function exportXLS(){const heads=['ID Contrato','Cliente','CPF/CNPJ','Chassi','Modelo','Data Assinatura','Prazo (meses)','Entrega Efetiva','Valor Mensal R$','Fornecedor','Tipo Pessoa','Comissão %','Comissão R$','Total Plano R$','Status','Responsável','Origem','Desfecho','Placa','Qtd Veículos','% Concluído','Meses Restantes','Local Entrega','Indicação','Nome Indicador','Casa Indicação','Obs'];const rows=contratos.map(c=>[c.id,c.cliente,c.cpf,c.chassi,normModel(c.modelo),c.assinatura,c.prazo,c.entregaEfetiva,c.valorMensal,c.fornecedor,c.tipo,c.comissaoPct,Math.round(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),Math.round(c.valorMensal*(c.prazo||1)),c.status,c.responsavel,c.midia,c.desfecho,c.placa,c.qtdCarros||1,pct(c),mRest(c),c.localEntrega||'',c.indicacao?'Sim':'Não',c.nomeIndicador||'',c.casaIndicacao||'',c.observacoes||'']);const ws=XLSX.utils.aoa_to_sheet([heads,...rows]);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Contratos');XLSX.writeFile(wb,'contratos_allma.xlsx');}
 
 /* EXPORTAR HTML */
+function exportDash(){const src=document.documentElement.outerHTML;const updated=src.replace(/let contratos=\[\];/,'let contratos='+JSON.stringify(contratos)+';');const blob=new Blob([updated],{type:'text/html;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='index.html';a.click();URL.revokeObjectURL(a.href);}
 
 /* EXPORTAR PDF v5 */
 function exportPDF(){if(typeof window.jspdf==='undefined'){alert('Aguarde o carregamento completo e tente novamente.');return;}const{jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});const d=getFiltrado();const ativos=d.filter(c=>isAtivo(c));const W=doc.internal.pageSize.getWidth();const hj=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});doc.setFillColor(24,95,165);doc.rect(0,0,W,22,'F');doc.setTextColor(255,255,255);doc.setFontSize(14);doc.setFont('helvetica','bold');doc.text('Grupo Allma Milazzo',14,10);doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text('Resumo Gerencial — Controle de Assinaturas de Veículos',14,16);doc.text(`Gerado: ${hj}${selectedPeriod?' · Período: '+selectedPeriod:''}`,W-14,16,{align:'right'});doc.setTextColor(30,30,30);doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text('INDICADORES GERAIS',14,30);const tp=d.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)),0);const tc=d.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),0);const tv=d.reduce((s,c)=>s+(c.qtdCarros||1),0);doc.autoTable({startY:33,margin:{left:14,right:14},head:[['Indicador','Valor']],body:[['Contratos ativos',ativos.length],['Receita mensal (ativos)','R$ '+Math.round(ativos.reduce((s,c)=>s+c.valorMensal,0)).toLocaleString('pt-BR')],['Total dos planos','R$ '+Math.round(tp).toLocaleString('pt-BR')],['Comissão total indicada','R$ '+Math.round(tc).toLocaleString('pt-BR')],['Qtd. veículos',tv],['Vencem em 60 dias',ativos.filter(c=>mRest(c)<=2).length]],headStyles:{fillColor:[24,95,165],textColor:255,fontStyle:'bold',fontSize:9},bodyStyles:{fontSize:9},alternateRowStyles:{fillColor:[245,245,245]},columnStyles:{0:{cellWidth:100},1:{cellWidth:60,halign:'right'}}});const y1=doc.lastAutoTable.finalY+8;doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text('RESUMO POR FORNECEDOR',14,y1);const fkeys=['FLUA','SIGN & DRIVE','BYD MAIS','ASSINE CAR','Outro'];doc.autoTable({startY:y1+3,margin:{left:14,right:14},head:[['Fornecedor','Contratos','Total Planos','Comissão']],body:fkeys.map(k=>{const g=d.filter(c=>fornGroup(c)===k);return[k,g.length,'R$ '+Math.round(g.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)),0)).toLocaleString('pt-BR'),'R$ '+Math.round(g.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),0)).toLocaleString('pt-BR')];}),headStyles:{fillColor:[24,95,165],textColor:255,fontStyle:'bold',fontSize:9},bodyStyles:{fontSize:9},alternateRowStyles:{fillColor:[245,245,245]}});const y2=doc.lastAutoTable.finalY+8;doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text('RESUMO POR RESPONSÁVEL',14,y2);const resps=[...new Set(d.map(c=>c.responsavel||'Não informado'))].sort();doc.autoTable({startY:y2+3,margin:{left:14,right:14},head:[['Responsável','Contratos','Ativos','Total Planos']],body:resps.map(r=>{const g=d.filter(c=>(c.responsavel||'Não informado')===r);return[r,g.length,g.filter(c=>isAtivo(c)).length,'R$ '+Math.round(g.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)),0)).toLocaleString('pt-BR')];}),headStyles:{fillColor:[24,95,165],textColor:255,fontStyle:'bold',fontSize:9},bodyStyles:{fontSize:9},alternateRowStyles:{fillColor:[245,245,245]}});doc.addPage();doc.setFillColor(24,95,165);doc.rect(0,0,W,14,'F');doc.setTextColor(255,255,255);doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text('LISTA DE CONTRATOS',14,9);doc.setTextColor(30,30,30);doc.autoTable({startY:18,margin:{left:8,right:8},head:[['ID','Cliente','Modelo','Prazo','Mensalidade','Total','Status','Resp.']],body:d.map(c=>[c.id,c.cliente.substring(0,20)+(c.cliente.length>20?'...':''),normModel(c.modelo).substring(0,16),c.prazo+'m','R$ '+Math.round(c.valorMensal).toLocaleString('pt-BR'),'R$ '+Math.round(c.valorMensal*(c.prazo||1)).toLocaleString('pt-BR'),c.status==='Ativo'?'Assinado':c.status,(c.responsavel||'').split(' ')[0]]),headStyles:{fillColor:[24,95,165],textColor:255,fontStyle:'bold',fontSize:8},bodyStyles:{fontSize:8},alternateRowStyles:{fillColor:[245,245,245]},columnStyles:{0:{cellWidth:20},1:{cellWidth:42},2:{cellWidth:32},3:{cellWidth:14},4:{cellWidth:24},5:{cellWidth:26},6:{cellWidth:22},7:{cellWidth:16}}});const np=doc.internal.getNumberOfPages();for(let p=1;p<=np;p++){doc.setPage(p);doc.setFontSize(8);doc.setTextColor(150,150,150);doc.setFont('helvetica','normal');doc.text(`Allma Milazzo · Confidencial · Pág. ${p} de ${np}`,W/2,290,{align:'center'});}doc.save(`resumo_allma_${hj.replace(/\//g,'-')}.pdf`);}
@@ -600,35 +661,12 @@ function toggleOutroForn(sel){document.getElementById('fg-outro').style.display=
 const FORM_IDS=['f-id','f-forn','f-forn-outro','f-tipo','f-status','f-prazo','f-assin','f-valor','f-com','f-qtd','f-desfecho','f-resp','f-cliente','f-cpf','f-modelo','f-chassi','f-placa','f-cor','f-entprev','f-entef','f-tipent','f-locent','f-midia','f-ind-nome','f-ind-casa','f-obs'];
 function clearForm(){FORM_IDS.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});const qtd=document.getElementById('f-qtd');if(qtd)qtd.value='1';document.getElementById('cb-ind').checked=false;document.getElementById('ind-fields').style.display='none';document.getElementById('fg-outro').style.display='none';}
 function fgv(id){const el=document.getElementById(id);return el?el.value.trim():'';}
-function saveContrato(){const cliente=fgv('f-cliente'),modelo=fgv('f-modelo'),tipo=fgv('f-tipo'),status=fgv('f-status');const prazo=parseInt(fgv('f-prazo'))||0,valor=pNum(fgv('f-valor')),assin=fgv('f-assin');let forn=fgv('f-forn');if(forn==='Outro')forn=fgv('f-forn-outro')||'Outro';const erros=[];if(!cliente)erros.push('Nome do cliente');if(!modelo)erros.push('Modelo');if(!forn||forn==='')erros.push('Fornecedor');if(!tipo)erros.push('Tipo de pessoa');if(!status)erros.push('Status');if(!prazo)erros.push('Prazo');if(!valor)erros.push('Valor mensal');if(!assin)erros.push('Data de assinatura');if(erros.length){alert('Campos obrigatórios:\n• '+erros.join('\n• '));return;}const isInd=document.getElementById('cb-ind').checked;const obj={id:editId||fgv('f-id')||('ASS-'+String(contratos.length+1).padStart(3,'0')),cliente,cpf:fgv('f-cpf'),chassi:fgv('f-chassi'),modelo:normModel(modelo),assinatura:assin,prazo,entregaEfetiva:fgv('f-entef')||assin,valorMensal:valor,fornecedor:forn,tipo,comissaoPct:parseFloat(fgv('f-com'))||0,status,responsavel:fgv('f-resp'),midia:fgv('f-midia'),desfecho:fgv('f-desfecho')||'A definir',placa:fgv('f-placa'),cor:fgv('f-cor'),tipoEntrega:fgv('f-tipent'),localEntrega:fgv('f-locent'),dataPrevEntrega:fgv('f-entprev'),qtdCarros:parseInt(fgv('f-qtd'))||1,indicacao:isInd,nomeIndicador:isInd?fgv('f-ind-nome'):'',casaIndicacao:isInd?fgv('f-ind-casa'):'',observacoes:fgv('f-obs'),};if(editId){const idx=contratos.findIndex(c=>c.id===editId);if(idx>=0)contratos[idx]=obj;showSuccess(`Contrato ${editId} atualizado!`);}else{contratos.push(obj);showSuccess(`Contrato ${obj.id} cadastrado!`);}cancelEdit();updSrcLbl();updFF();saveLS();init();}
+function saveContrato(){const cliente=fgv('f-cliente'),modelo=fgv('f-modelo'),tipo=fgv('f-tipo'),status=fgv('f-status');const prazo=parseInt(fgv('f-prazo'))||0,valor=pNum(fgv('f-valor')),assin=fgv('f-assin');let forn=fgv('f-forn');if(forn==='Outro')forn=fgv('f-forn-outro')||'Outro';const erros=[];if(!cliente)erros.push('Nome do cliente');if(!modelo)erros.push('Modelo');if(!forn||forn==='')erros.push('Fornecedor');if(!tipo)erros.push('Tipo de pessoa');if(!status)erros.push('Status');if(!prazo)erros.push('Prazo');if(!valor)erros.push('Valor mensal');if(!assin)erros.push('Data de assinatura');if(erros.length){alert('Campos obrigatórios:\n• '+erros.join('\n• '));return;}const isInd=document.getElementById('cb-ind').checked;const obj={id:editId||fgv('f-id')||('ASS-'+String(contratos.length+1).padStart(3,'0')),cliente,cpf:fgv('f-cpf'),chassi:fgv('f-chassi'),modelo:normModel(modelo),assinatura:assin,prazo,entregaEfetiva:fgv('f-entef')||assin,valorMensal:valor,fornecedor:forn,tipo,comissaoPct:parseFloat(fgv('f-com'))||0,status,responsavel:fgv('f-resp'),midia:fgv('f-midia'),desfecho:fgv('f-desfecho')||'A definir',placa:fgv('f-placa'),cor:fgv('f-cor'),tipoEntrega:fgv('f-tipent'),localEntrega:fgv('f-locent'),dataPrevEntrega:fgv('f-entprev'),qtdCarros:parseInt(fgv('f-qtd'))||1,indicacao:isInd,nomeIndicador:isInd?fgv('f-ind-nome'):'',casaIndicacao:isInd?fgv('f-ind-casa'):'',observacoes:fgv('f-obs'),};if(editId){showSuccess('Contrato '+editId+' atualizado!');}else{showSuccess('Contrato '+obj.id+' cadastrado!');}
+cancelEdit();
+fbSave(obj);  // Salva no Firestore (listener vai atualizar tudo automaticamente)
+}
 
 /* EVENT DELEGATION para editar/excluir (resolve problema de onclick inline) */
-/* ========= SENHA EDIÇÃO ========= */
-let senhaEditTargetId = null;
-function pedirSenhaParaEditar(id){
-  senhaEditTargetId = id;
-  document.getElementById('se-id-label').textContent = id;
-  document.getElementById('se-senha').value = '';
-  document.getElementById('se-err').style.display = 'none';
-  document.getElementById('senha-edit-overlay').style.display = 'flex';
-  setTimeout(()=>document.getElementById('se-senha').focus(), 100);
-}
-function fecharSenhaEdit(){
-  document.getElementById('senha-edit-overlay').style.display = 'none';
-  senhaEditTargetId = null;
-}
-function confirmarSenhaEdit(){
-  const senha = document.getElementById('se-senha').value;
-  if(senha !== DELETE_PASS){
-    document.getElementById('se-err').style.display = 'block';
-    document.getElementById('se-senha').value = '';
-    document.getElementById('se-senha').focus();
-    return;
-  }
-  const id = senhaEditTargetId;
-  fecharSenhaEdit();
-  abrirModalEdit(id);
-}
 /* ========= MODAL EDIÇÃO ========= */
 function emGet(id){return document.getElementById(id);}
 function emVal(id){const el=emGet(id);return el?el.value.trim():'';}
@@ -712,9 +750,10 @@ function salvarModalEdit(){
     localEntrega:emVal('em-locent'),
     observacoes:emVal('em-obs'),
   };
+  const idSalvo = contratos[idx].id;
   fecharModalEdit();
-  updSrcLbl();updFF();saveLS();init();
-  showSuccess('Contrato '+contratos[idx].id+' atualizado com sucesso!');
+  fbSave(contratos[idx]);
+  showSuccess('Contrato '+idSalvo+' atualizado!');
 }
 /* =============================== */
 
@@ -750,10 +789,10 @@ function confirmDelete(){
     document.getElementById('del-senha').focus();
     return;
   }
-  contratos = contratos.filter(c => String(c.id) !== String(deleteTargetId));
+  const idExcluido = deleteTargetId;
   closeDeleteModal();
-  updSrcLbl(); updFF(); saveLS(); init();
-  showSuccess('Contrato ' + deleteTargetId + ' excluído.');
+  fbDelete(idExcluido);
+  showSuccess('Contrato ' + idExcluido + ' excluído.');
 }
 
 /* ABAS */
@@ -763,11 +802,13 @@ function swTabById(tab){document.querySelectorAll('.view').forEach(v=>v.classLis
 /* INIT */
 function init(){calcKpis();buildGestao();buildAnalitico();renderAlerts();renderTbl();}
 initDark();
-if(loadLS()){updSrcLbl();updFF();}
-updLSBadge();
 buildPeriodFilter();
 document.getElementById('lastupd').textContent='Aberto em '+new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-init();
+// Tenta carregar do cache local enquanto Firebase conecta
+if(loadLS()&&contratos.length>0){updSrcLbl();updFF();init();fbStatus('conectando...',true);}
+else{document.getElementById('src-lbl').innerHTML='<i class="ti ti-cloud"></i> Conectando ao Firebase...';}
+// Inicia sincronização em tempo real
+startRealtimeSync();
 </script>
 </body>
 </html>
