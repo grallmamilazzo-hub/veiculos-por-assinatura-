@@ -65,7 +65,14 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg2);color:
 .filt select{font-size:12px;padding:5px 8px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);cursor:pointer;font-family:inherit}
 .tw{background:var(--bg1);border:0.5px solid var(--b1);border-radius:var(--rlg);overflow:auto}
 table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
-th{padding:8px 9px;text-align:left;font-size:9px;font-weight:600;color:var(--t3);letter-spacing:.05em;text-transform:uppercase;border-bottom:0.5px solid var(--b1);white-space:nowrap;background:var(--bg2)}
+th{padding:8px 9px;text-align:left;font-size:9px;font-weight:600;color:var(--t3);letter-spacing:.05em;text-transform:uppercase;border-bottom:0.5px solid var(--b1);white-space:nowrap;background:var(--bg2);user-select:none}
+.thsort:hover{background:var(--bg1);color:var(--t1)}
+.sa{display:inline-block;margin-left:3px;color:var(--t3);font-size:8px}
+.sa.asc::after{content:'▲';color:var(--ok)}
+.sa.desc::after{content:'▼';color:var(--ok)}
+.pgbtn{padding:3px 8px;font-size:11px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);cursor:pointer;font-family:inherit}
+.pgbtn:hover:not(:disabled){background:var(--bg2)}
+.pgbtn:disabled{opacity:.4;cursor:not-allowed}
 td{padding:6px 9px;color:var(--t1);border-bottom:0.5px solid var(--b1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{background:rgba(162,45,45,.07)}tr.rw td{background:rgba(186,117,23,.07)}
 .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500}
@@ -148,22 +155,38 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
   <div id="operacional" class="view">
     <div id="alerts"></div>
     <div class="filt">
-      <select id="fs" onchange="renderTbl()"><option value="">Todos os status</option><option>Assinado</option><option>Cancelado</option><option>Aguardando Entrega</option><option>Encerrado</option></select>
-      <select id="ff" onchange="renderTbl()"><option value="">Todos os fornecedores</option></select>
-      <select id="ft" onchange="renderTbl()"><option value="">PF / PJ</option><option value="PF">Pessoa Física</option><option value="PJ">Pessoa Jurídica</option></select>
-      <select id="fr" onchange="renderTbl()"><option value="">Todos os responsáveis</option><option>Gabriela L. Egídio</option><option>Ulisses dos Santos</option><option>Vendedor</option></select>
+      <div style="position:relative;flex:1;min-width:180px;max-width:320px">
+        <i class="ti ti-search" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:13px;pointer-events:none"></i>
+        <input id="f-search" type="text" placeholder="Buscar por cliente, ID, modelo, placa..." oninput="onSearchInput(this.value)" style="width:100%;font-size:12px;padding:6px 9px 6px 28px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit">
+      </div>
+      <select id="fs" onchange="currentPage=1;renderTbl()"><option value="">Todos os status</option><option>Assinado</option><option>Cancelado</option><option>Aguardando Entrega</option><option>Encerrado</option></select>
+      <select id="ff" onchange="currentPage=1;renderTbl()"><option value="">Todos os fornecedores</option></select>
+      <select id="ft" onchange="currentPage=1;renderTbl()"><option value="">PF / PJ</option><option value="PF">Pessoa Física</option><option value="PJ">Pessoa Jurídica</option></select>
+      <select id="fr" onchange="currentPage=1;renderTbl()"><option value="">Todos os responsáveis</option></select>
+      <button class="btn" onclick="limparFiltros()" title="Limpar busca e filtros" style="font-size:11px"><i class="ti ti-filter-off"></i> Limpar</button>
     </div>
     <div class="tw"><table>
       <thead><tr>
-        <th style="width:82px">Contrato</th><th style="width:125px">Cliente</th><th style="width:90px">Fornecedor</th>
+        <th class="thsort" data-sort="id" style="width:82px;cursor:pointer">Contrato<span class="sa" data-sa="id"></span></th>
+        <th class="thsort" data-sort="cliente" style="width:125px;cursor:pointer">Cliente<span class="sa" data-sa="cliente"></span></th>
+        <th class="thsort" data-sort="fornecedor" style="width:90px;cursor:pointer">Fornecedor<span class="sa" data-sa="fornecedor"></span></th>
         <th style="width:33px">Tipo</th><th style="width:108px">Modelo</th><th style="width:38px">Qtd</th>
-        <th style="width:68px">Status</th><th style="width:88px">Progresso</th><th style="width:44px">Resta</th>
-        <th style="width:74px">Vl. Mensal</th><th style="width:80px">Comissão</th><th style="width:88px">Responsável</th>
-        <th style="width:66px">Desfecho</th><th style="width:66px">Vencimento</th><th style="width:76px">Ação</th>
+        <th class="thsort" data-sort="status" style="width:68px;cursor:pointer">Status<span class="sa" data-sa="status"></span></th>
+        <th style="width:88px">Progresso</th>
+        <th class="thsort" data-sort="resta" style="width:44px;cursor:pointer">Resta<span class="sa" data-sa="resta"></span></th>
+        <th class="thsort" data-sort="valor" style="width:74px;cursor:pointer">Vl. Mensal<span class="sa" data-sa="valor"></span></th>
+        <th class="thsort" data-sort="comissao" style="width:80px;cursor:pointer">Comissão<span class="sa" data-sa="comissao"></span></th>
+        <th style="width:88px">Responsável</th>
+        <th style="width:66px">Desfecho</th>
+        <th class="thsort" data-sort="venc" style="width:66px;cursor:pointer">Vencimento<span class="sa" data-sa="venc"></span></th>
+        <th style="width:76px">Ação</th>
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table></div>
-    <p style="font-size:11px;color:var(--t3);margin-top:7px" id="tcount"></p>
+    <div id="tbl-foot" style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap">
+      <p style="font-size:11px;color:var(--t3);margin:0" id="tcount"></p>
+      <div id="pager" style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t2)"></div>
+    </div>
   </div>
   <!-- ANALITICO -->
   <div id="analitico" class="view">
@@ -209,7 +232,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
       <div class="fsec"><div class="fsec-t">Dados do contrato</div>
         <div class="fg-grid">
           <div class="fg"><label>ID Contrato</label><input id="f-id" placeholder="Deixe vazio para gerar automaticamente"></div>
-          <div class="fg"><label>Fornecedor *</label><select id="f-forn" onchange="toggleOutroForn(this)"><option value="">Selecione...</option><option>FLUA</option><option>SIGN &amp; DRIVE</option><option>BYD MAIS</option><option>ASSINE CAR</option><option value="Outro">Outro</option></select></div>
+          <div class="fg"><label>Fornecedor *</label><select id="f-forn" onchange="toggleOutroForn(this)"><option value="">Selecione...</option></select></div>
           <div class="fg" id="fg-outro" style="display:none"><label>Nome do fornecedor</label><input id="f-forn-outro" placeholder="Informe o nome"></div>
           <div class="fg"><label>Tipo de pessoa *</label><select id="f-tipo"><option value="">Selecione...</option><option value="PF">Pessoa Física</option><option value="PJ">Pessoa Jurídica</option></select></div>
           <div class="fg"><label>Status *</label><select id="f-status"><option value="">Selecione...</option><option value="Assinado">Assinado</option><option value="Cancelado">Cancelado</option></select></div>
@@ -223,7 +246,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
           <div class="fg"><label>Comissão (%)</label><input id="f-com" type="number" min="0" step="0.1" placeholder="Ex: 7"></div>
           <div class="fg"><label>Qtd. de veículos *</label><input id="f-qtd" type="number" min="1" value="1"></div>
           <div class="fg"><label>Desfecho previsto</label><select id="f-desfecho"><option value="">Selecione...</option><option>Renovação</option><option>Devolução</option><option>A definir</option></select></div>
-          <div class="fg"><label>Responsável interno *</label><select id="f-resp"><option value="">Selecione...</option><option>Gabriela L. Egídio</option><option>Ulisses dos Santos</option><option>Vendedor</option></select></div>
+          <div class="fg"><label>Responsável interno *</label><select id="f-resp"><option value="">Selecione...</option></select></div>
         </div>
       </div>
       <div class="fsec"><div class="fsec-t">Dados do cliente</div>
@@ -246,19 +269,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
           <div class="fg"><label>Data efetiva de entrega</label><input id="f-entef" type="date"></div>
           <div class="fg"><label>Tipo de entrega</label><input id="f-tipent" placeholder="Ex: Concessionária"></div>
           <div class="fg"><label>Local da entrega</label>
-            <select id="f-locent">
-              <option value="">Selecione...</option>
-              <option>Milazzo Fiat Jaú</option><option>Milazzo Fiat Marilia</option><option>Milazzo Fiat Bauru</option>
-              <option>Milazzo Fiat Botucatu</option><option>Milazzo Fiat Santos</option><option>Milazzo Fiat Brasília</option>
-              <option>Allma Jeep &amp; RAM SJRP</option><option>Allma Jeep SJRP Usados</option><option>Allma Jeep Votuporanga</option>
-              <option>Allma Jeep Barretos</option><option>Allma Peugeot &amp; Citroën Bauru</option>
-              <option>Allma Peugeot &amp; Citroën Ribeirão Preto</option><option>Allma Peugeot &amp; Citroën Marília</option>
-              <option>Allma BYD Araçatuba</option><option>Allma BYD Bauru</option><option>Allma BYD Botucatu</option>
-              <option>Allma BYD Marília</option><option>Allma BYD SJRP</option><option>Allma BYD Jaú</option>
-              <option>Allma Denza Ribeirão Preto</option><option>Allma Leapmotor Santos</option>
-              <option>Allma Volkswagen Bauru</option><option>Allma Volkswagen Orlândia</option>
-              <option>Local Externo</option>
-            </select>
+            <select id="f-locent"><option value="">Selecione...</option></select>
           </div>
         </div>
       </div>
@@ -271,17 +282,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
           <div class="fg-grid">
             <div class="fg"><label>Nome de quem indicou</label><input id="f-ind-nome" placeholder="Nome completo"></div>
             <div class="fg"><label>Casa que gerou a indicação</label>
-              <select id="f-ind-casa"><option value="">Selecione...</option>
-                <option>Milazzo Fiat Jaú</option><option>Milazzo Fiat Marilia</option><option>Milazzo Fiat Bauru</option>
-                <option>Milazzo Fiat Botucatu</option><option>Milazzo Fiat Santos</option><option>Milazzo Fiat Brasília</option>
-                <option>Allma Jeep &amp; RAM SJRP</option><option>Allma Jeep SJRP Usados</option><option>Allma Jeep Votuporanga</option>
-                <option>Allma Jeep Barretos</option><option>Allma Peugeot &amp; Citroën Bauru</option>
-                <option>Allma Peugeot &amp; Citroën Ribeirão Preto</option><option>Allma Peugeot &amp; Citroën Marília</option>
-                <option>Allma BYD Araçatuba</option><option>Allma BYD Bauru</option><option>Allma BYD Botucatu</option>
-                <option>Allma BYD Marília</option><option>Allma BYD SJRP</option><option>Allma BYD Jaú</option>
-                <option>Allma Denza Ribeirão Preto</option><option>Allma Leapmotor Santos</option>
-                <option>Allma Volkswagen Bauru</option><option>Allma Volkswagen Orlândia</option>
-              </select>
+              <select id="f-ind-casa"><option value="">Selecione...</option></select>
             </div>
           </div>
         </div>
@@ -306,12 +307,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
             <div class="fg-grid">
               <div class="fg"><label>Data *</label><input id="rd-data" type="date"></div>
               <div class="fg"><label>Responsável *</label>
-                <select id="rd-resp">
-                  <option value="">Selecione...</option>
-                  <option>Gabriela L. Egídio</option>
-                  <option>Ulisses dos Santos</option>
-                  <option>Vendedor</option>
-                </select>
+                <select id="rd-resp"><option value="">Selecione...</option></select>
               </div>
             </div>
           </div>
@@ -406,9 +402,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
     <div style="padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px" id="em-body">
       <div style="grid-column:span 2;font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);padding-bottom:6px;border-bottom:0.5px solid var(--b1)">Contrato</div>
       <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Fornecedor *</label>
-        <select id="em-forn" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit">
-          <option value="">Selecione...</option><option>FLUA</option><option>SIGN &amp; DRIVE</option><option>BYD MAIS</option><option>ASSINE CAR</option><option value="Outro">Outro</option>
-        </select></div>
+        <select id="em-forn" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit"><option value="">Selecione...</option></select></div>
       <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Tipo de pessoa *</label>
         <select id="em-tipo" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit">
           <option value="">Selecione...</option><option value="PF">Pessoa Física</option><option value="PJ">Pessoa Jurídica</option>
@@ -418,9 +412,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
           <option value="">Selecione...</option><option value="Assinado">Assinado</option><option value="Cancelado">Cancelado</option>
         </select></div>
       <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Responsável *</label>
-        <select id="em-resp" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit">
-          <option value="">Selecione...</option><option>Gabriela L. Egídio</option><option>Ulisses dos Santos</option><option>Vendedor</option>
-        </select></div>
+        <select id="em-resp" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit"><option value="">Selecione...</option></select></div>
       <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Prazo (meses) *</label>
         <input id="em-prazo" type="number" min="1" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit"></div>
       <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Data de assinatura *</label>
@@ -453,19 +445,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
       <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Data efetiva de entrega</label>
         <input id="em-entef" type="date" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit"></div>
       <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Local da entrega</label>
-        <select id="em-locent" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit">
-          <option value="">Selecione...</option>
-          <option>Milazzo Fiat Jaú</option><option>Milazzo Fiat Marilia</option><option>Milazzo Fiat Bauru</option>
-          <option>Milazzo Fiat Botucatu</option><option>Milazzo Fiat Santos</option><option>Milazzo Fiat Brasília</option>
-          <option>Allma Jeep &amp; RAM SJRP</option><option>Allma Jeep SJRP Usados</option><option>Allma Jeep Votuporanga</option>
-          <option>Allma Jeep Barretos</option><option>Allma Peugeot &amp; Citroën Bauru</option>
-          <option>Allma Peugeot &amp; Citroën Ribeirão Preto</option><option>Allma Peugeot &amp; Citroën Marília</option>
-          <option>Allma BYD Araçatuba</option><option>Allma BYD Bauru</option><option>Allma BYD Botucatu</option>
-          <option>Allma BYD Marília</option><option>Allma BYD SJRP</option><option>Allma BYD Jaú</option>
-          <option>Allma Denza Ribeirão Preto</option><option>Allma Leapmotor Santos</option>
-          <option>Allma Volkswagen Bauru</option><option>Allma Volkswagen Orlândia</option>
-          <option>Local Externo</option>
-        </select></div>
+        <select id="em-locent" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit"><option value="">Selecione...</option></select></div>
 
       <div style="grid-column:span 2"><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Observações</label>
         <textarea id="em-obs" rows="2" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit;resize:vertical"></textarea></div>
@@ -522,8 +502,78 @@ const CT={'PF':'#378ADD','PJ':'#D85A30'};
 const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const PALETTE=['#378ADD','#1D9E75','#EF9F27','#D4537E','#534AB7','#D85A30','#888780','#2DD4BF','#F472B6','#A3E635'];
 const CH={};
+
+/* ===== LISTAS CENTRALIZADAS (refator: antes duplicadas em 3+ selects) ===== */
+const UNIDADES=[
+  'Milazzo Fiat Jaú','Milazzo Fiat Marilia','Milazzo Fiat Bauru',
+  'Milazzo Fiat Botucatu','Milazzo Fiat Santos','Milazzo Fiat Brasília',
+  'Allma Jeep & RAM SJRP','Allma Jeep SJRP Usados','Allma Jeep Votuporanga',
+  'Allma Jeep Barretos','Allma Peugeot & Citroën Bauru',
+  'Allma Peugeot & Citroën Ribeirão Preto','Allma Peugeot & Citroën Marília',
+  'Allma BYD Araçatuba','Allma BYD Bauru','Allma BYD Botucatu',
+  'Allma BYD Marília','Allma BYD SJRP','Allma BYD Jaú',
+  'Allma Denza Ribeirão Preto','Allma Leapmotor Santos',
+  'Allma Volkswagen Bauru','Allma Volkswagen Orlândia',
+  'Local Externo'
+];
+const RESPONSAVEIS=['Gabriela L. Egídio','Ulisses dos Santos','Vendedor'];
+const FORNECEDORES=['FLUA','SIGN & DRIVE','BYD MAIS','ASSINE CAR'];
+
+/* Popula um <select> existente. opts:
+   { placeholder:'Selecione...', extra:[{value:'Outro',label:'Outro'}], allLabel:'Todos os ...' } */
+function fillSelect(id, items, opts){
+  const el=document.getElementById(id); if(!el) return;
+  opts=opts||{};
+  const cur=el.value;
+  let html='';
+  if(opts.placeholder!==undefined) html+=`<option value="">${opts.placeholder}</option>`;
+  if(opts.allLabel) html+=`<option value="">${opts.allLabel}</option>`;
+  items.forEach(it=>{
+    if(typeof it==='string') html+=`<option>${it}</option>`;
+    else html+=`<option value="${it.value}">${it.label}</option>`;
+  });
+  (opts.extra||[]).forEach(e=>{html+=`<option value="${e.value}">${e.label}</option>`;});
+  el.innerHTML=html;
+  if(cur && [...el.options].some(o=>o.value===cur||o.textContent===cur)) el.value=cur;
+}
+
+function popularSelects(){
+  fillSelect('f-forn', FORNECEDORES, {placeholder:'Selecione...', extra:[{value:'Outro',label:'Outro'}]});
+  fillSelect('f-resp', RESPONSAVEIS, {placeholder:'Selecione...'});
+  fillSelect('f-locent', UNIDADES, {placeholder:'Selecione...'});
+  fillSelect('f-ind-casa', UNIDADES, {placeholder:'Selecione...'});
+  fillSelect('em-forn', FORNECEDORES, {placeholder:'Selecione...', extra:[{value:'Outro',label:'Outro'}]});
+  fillSelect('em-resp', RESPONSAVEIS, {placeholder:'Selecione...'});
+  fillSelect('em-locent', UNIDADES, {placeholder:'Selecione...'});
+  fillSelect('fr', RESPONSAVEIS, {allLabel:'Todos os responsáveis'});
+  fillSelect('rd-resp', RESPONSAVEIS, {placeholder:'Selecione...'});
+}
+
 let contratos=[];
 let selectedPeriod='',pendingImport=null,editId=null;
+/* Estado da tabela Operacional */
+let searchTerm='', sortCol=null, sortDir='asc', currentPage=1;
+const PAGE_SIZE=50;
+const SORT_KEYS={
+  id:c=>String(c.id||''),
+  cliente:c=>(c.cliente||'').toLowerCase(),
+  fornecedor:c=>(typeof fornGroup==='function'?fornGroup(c):c.fornecedor||''),
+  status:c=>c.status||'',
+  resta:c=>(typeof mRest==='function'?mRest(c):0),
+  valor:c=>c.valorMensal||0,
+  comissao:c=>(c.valorMensal||0)*(c.prazo||1)*(c.comissaoPct||0)/100,
+  venc:c=>{const v=(typeof dataVenc==='function')?dataVenc(c):null;return v?v.getTime():Number.POSITIVE_INFINITY;}
+};
+function setSort(col){
+  if(sortCol===col){
+    if(sortDir==='asc') sortDir='desc';
+    else { sortCol=null; sortDir='asc'; } // 3º click limpa
+  } else { sortCol=col; sortDir='asc'; }
+  currentPage=1;
+  renderTbl();
+}
+function debounce(fn,ms){let t;return function(){clearTimeout(t);const a=arguments;t=setTimeout(()=>fn.apply(null,a),ms);};}
+const onSearchInput=debounce(function(v){searchTerm=String(v||'').toLowerCase().trim();currentPage=1;renderTbl();},150);
 
 /* DARK MODE */
 function initDark(){const p=localStorage.getItem(LS_DARK);if(p==='dark')document.documentElement.setAttribute('data-dark','');else if(p==='light')document.documentElement.setAttribute('data-light','');updDarkBtn();}
@@ -660,7 +710,22 @@ function parseBRL(s){
   if(typeof s==='number')return s;
   return pNum(String(s));
 }
-function mkChart(id,cfg){if(CH[id])CH[id].destroy();CH[id]=new Chart(document.getElementById(id),cfg);}
+function mkChart(id,cfg){
+  // Otimização: se já existe um chart do mesmo tipo e indexAxis, atualiza data/options em vez de destruir
+  const existing=CH[id];
+  const sameType=existing && existing.config && existing.config.type===cfg.type
+    && (existing.config.options?.indexAxis||'x')===(cfg.options?.indexAxis||'x');
+  const canvas=document.getElementById(id);
+  if(!canvas) return;
+  if(sameType){
+    existing.data=cfg.data;
+    if(cfg.options) existing.options=cfg.options;
+    existing.update('none'); // sem animação para evitar flicker em rebuilds frequentes
+    return;
+  }
+  if(existing) existing.destroy();
+  CH[id]=new Chart(canvas,cfg);
+}
 function mkLeg(id,labels,colors){document.getElementById(id).innerHTML=labels.map((l,i)=>`<span><i style="background:${colors[i]}"></i>${l}</span>`).join('');}
 function mkPie(id,labels,data,colors){mkChart(id,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+ctx.raw}}}}});}
 function getFiltrado(){let d=contratos;if(selectedPeriod)d=d.filter(c=>(c.assinatura||'').startsWith(selectedPeriod));return d;}
@@ -689,16 +754,45 @@ function renderAlerts(){const ativos=getFiltrado().filter(c=>isAtivo(c));const c
 
 /* TABELA */
 function badgeSt(s){const m={'Assinado':'ba','Ativo':'ba','Encerrado':'be','Aguardando Entrega':'bag','Cancelado':'bc'};return`<span class="badge ${m[s]||'be'}">${s==='Ativo'?'Assinado':s}</span>`;}
+function matchSearch(c,q){
+  if(!q) return true;
+  const hay=[c.id,c.cliente,c.modelo,c.placa,c.cpf,c.chassi,c.fornecedor,c.responsavel].map(v=>String(v||'').toLowerCase()).join(' ');
+  return hay.indexOf(q)>=0;
+}
 function renderTbl(){
   const fs=document.getElementById('fs').value,ff=document.getElementById('ff').value,ft=document.getElementById('ft').value,fr=document.getElementById('fr').value;
-  const rows=getFiltrado().filter(c=>{
+  let rows=getFiltrado().filter(c=>{
     if(fs&&c.status!==fs&&!(fs==='Assinado'&&c.status==='Ativo'))return false;
     if(ff&&fornGroup(c)!==ff&&c.fornecedor!==ff)return false;
     if(ft&&c.tipo!==ft)return false;
     if(fr&&c.responsavel!==fr)return false;
+    if(!matchSearch(c,searchTerm))return false;
     return true;
   });
-  document.getElementById('tbody').innerHTML=rows.map(c=>{
+  // Ordenação
+  if(sortCol && SORT_KEYS[sortCol]){
+    const keyFn=SORT_KEYS[sortCol];
+    const dir=sortDir==='desc'?-1:1;
+    rows=rows.slice().sort((a,b)=>{
+      const ka=keyFn(a), kb=keyFn(b);
+      if(ka<kb)return -1*dir;
+      if(ka>kb)return  1*dir;
+      return 0;
+    });
+  }
+  // Atualiza setas dos headers
+  document.querySelectorAll('th .sa').forEach(el=>{
+    const c=el.getAttribute('data-sa');
+    el.className='sa'+(c===sortCol?(' '+sortDir):'');
+  });
+  // Paginação
+  const total=rows.length;
+  const totalPages=Math.max(1,Math.ceil(total/PAGE_SIZE));
+  if(currentPage>totalPages) currentPage=totalPages;
+  if(currentPage<1) currentPage=1;
+  const start=(currentPage-1)*PAGE_SIZE;
+  const slice=rows.slice(start, start+PAGE_SIZE);
+  document.getElementById('tbody').innerHTML=slice.map(c=>{
     const p=pct(c),mr=mRest(c);
     const cls=isAtivo(c)&&mr<=1?'rc':isAtivo(c)&&mr<=2?'rw':'';
     const comR=Math.round(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100);
@@ -726,7 +820,29 @@ function renderTbl(){
       </td>
     </tr>`;
   }).join('');
-  document.getElementById('tcount').textContent=rows.length+' contrato(s)';
+  // Contagem + paginação UI
+  const fim=Math.min(start+PAGE_SIZE,total);
+  const filtrosAtivos=!!(searchTerm||document.getElementById('fs').value||document.getElementById('ff').value||document.getElementById('ft').value||document.getElementById('fr').value);
+  document.getElementById('tcount').textContent= total===0
+    ? (filtrosAtivos?'Nenhum contrato com os filtros atuais':'Nenhum contrato')
+    : `Exibindo ${start+1}–${fim} de ${total} contrato(s)`+(filtrosAtivos?' (filtrado)':'');
+  const pager=document.getElementById('pager');
+  if(total<=PAGE_SIZE){ pager.innerHTML=''; }
+  else{
+    pager.innerHTML=
+      `<button class="pgbtn" onclick="goToPage(1)" ${currentPage===1?'disabled':''} title="Primeira"><i class="ti ti-chevrons-left"></i></button>`+
+      `<button class="pgbtn" onclick="goToPage(${currentPage-1})" ${currentPage===1?'disabled':''}><i class="ti ti-chevron-left"></i> Anterior</button>`+
+      `<span style="padding:0 4px">Pág. ${currentPage} de ${totalPages}</span>`+
+      `<button class="pgbtn" onclick="goToPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Próxima <i class="ti ti-chevron-right"></i></button>`+
+      `<button class="pgbtn" onclick="goToPage(${totalPages})" ${currentPage===totalPages?'disabled':''} title="Última"><i class="ti ti-chevrons-right"></i></button>`;
+  }
+}
+function goToPage(p){currentPage=p;renderTbl();}
+function limparFiltros(){
+  searchTerm=''; sortCol=null; sortDir='asc'; currentPage=1;
+  const ids=['f-search','fs','ff','ft','fr'];
+  ids.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  renderTbl();
 }
 
 /* FILTRO FF */
@@ -870,6 +986,10 @@ function salvarModalEdit(){
 /* =============================== */
 
 document.addEventListener('click', function(e){
+  // Ordenação por click no header
+  const th = e.target.closest('th.thsort[data-sort]');
+  if(th){ setSort(th.getAttribute('data-sort')); return; }
+  // Ações da tabela (edit/delete via data-action)
   const btn = e.target.closest('[data-action]');
   if(!btn) return;
   const action = btn.getAttribute('data-action');
@@ -1125,6 +1245,7 @@ function swTabById(tab){document.querySelectorAll('.view').forEach(v=>v.classLis
 /* INIT */
 function init(){calcKpis();buildGestao();buildAnalitico();renderAlerts();renderTbl();}
 initDark();
+popularSelects();
 // Data de hoje no formulário de relatório
 const rdDataEl=document.getElementById('rd-data');
 if(rdDataEl)rdDataEl.value=new Date().toISOString().split('T')[0];
