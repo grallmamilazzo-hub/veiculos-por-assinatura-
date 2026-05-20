@@ -474,6 +474,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <!-- Charts & Utils -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -491,7 +492,56 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const auth = firebase.auth();
 const COL = 'contratos';
+
+/* ===== AUTH (FASE 2 — Anonymous Auth para satisfazer regras Firestore) =====
+   Por que login anônimo? As regras de FASE 2 exigem request.auth != null para
+   create/update/delete. O Anonymous Auth dá ao usuário um uid sem pedir e-mail
+   ou senha — basicamente um "token de visitante" persistente neste navegador.
+   Limitações: cada navegador é um usuário diferente; se você quiser auditar
+   "quem editou", evolua para Auth por e-mail (FASE 3). */
+let _authUser = null;
+let _authReady = false;
+
+function authBadgeUpd(state, txt){
+  // state: 'ok' | 'wait' | 'err'
+  const el = document.getElementById('ls-badge');
+  if(!el) return;
+  const ico = state==='ok' ? 'ti-shield-check' : (state==='err' ? 'ti-shield-x' : 'ti-shield-half');
+  el.innerHTML = `<i class="ti ${ico}"></i> ${txt}`;
+}
+
+function ensureAuth(){
+  if(_authReady && _authUser) return Promise.resolve(_authUser);
+  authBadgeUpd('wait','autenticando...');
+  return new Promise((resolve, reject)=>{
+    // Observa mudanças no estado de auth — resolve quando houver usuário
+    const unsub = auth.onAuthStateChanged(user=>{
+      if(user){
+        _authUser = user; _authReady = true;
+        unsub();
+        const shortUid = (user.uid||'').slice(0,6);
+        authBadgeUpd('ok', `autenticado · ${shortUid}`);
+        resolve(user);
+      }
+    }, err=>{ unsub(); reject(err); });
+    // Inicia login anônimo (idempotente: se já está logado, onAuthStateChanged dispara imediato)
+    auth.signInAnonymously().catch(err=>{
+      console.error('signInAnonymously erro:', err);
+      _authReady = true;
+      // Erro mais comum: 'auth/admin-restricted-operation' = Anonymous Auth desativado no Console
+      if(err && err.code === 'auth/admin-restricted-operation'){
+        authBadgeUpd('err','Auth anônimo desativado no Firebase');
+      } else if(err && err.code === 'auth/operation-not-allowed'){
+        authBadgeUpd('err','Auth anônimo não habilitado');
+      } else {
+        authBadgeUpd('err','falha na autenticação');
+      }
+      reject(err);
+    });
+  });
+}
 
 /* ===== LOCALSTORAGE KEYS ===== */
 const LS_KEY='allma_assin_v5',LS_TS='allma_assin_v5_ts',LS_DARK='allma_dark_v5';
@@ -593,23 +643,31 @@ function fbStatus(msg, ok=true){
 // Salva UM contrato no Firestore (upsert pelo ID)
 async function fbSave(contrato){
   try{
+    await ensureAuth(); // Garante que há um usuário (necessário pelas regras FASE 2)
     const id = String(contrato.id);
     await db.collection(COL).doc(id).set(contrato);
     fbStatus('salvo '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));
   }catch(e){
     console.error('fbSave erro:',e);
-    fbStatus('erro ao salvar',false);
+    const msg = (e && e.code==='permission-denied')
+      ? 'sem permissão (verifique regras Firestore)'
+      : 'erro ao salvar';
+    fbStatus(msg,false);
   }
 }
 
 // Exclui um contrato do Firestore
 async function fbDelete(id){
   try{
+    await ensureAuth();
     await db.collection(COL).doc(String(id)).delete();
     fbStatus('excluído');
   }catch(e){
     console.error('fbDelete erro:',e);
-    fbStatus('erro ao excluir',false);
+    const msg = (e && e.code==='permission-denied')
+      ? 'sem permissão para excluir'
+      : 'erro ao excluir';
+    fbStatus(msg,false);
   }
 }
 
@@ -632,18 +690,22 @@ function startRealtimeSync(){
 
 // Importa array inteiro para o Firestore (batch)
 async function fbImportAll(lista){
-  fbStatus('enviando '+lista.length+' contratos...',true);
-  const batch = db.batch();
-  lista.forEach(c=>{
-    const ref = db.collection(COL).doc(String(c.id));
-    batch.set(ref, c);
-  });
   try{
+    await ensureAuth();
+    fbStatus('enviando '+lista.length+' contratos...',true);
+    const batch = db.batch();
+    lista.forEach(c=>{
+      const ref = db.collection(COL).doc(String(c.id));
+      batch.set(ref, c);
+    });
     await batch.commit();
     fbStatus(lista.length+' importados!');
   }catch(e){
     console.error('fbImportAll erro:',e);
-    fbStatus('erro na importação',false);
+    const msg = (e && e.code==='permission-denied')
+      ? 'sem permissão para importar'
+      : 'erro na importação';
+    fbStatus(msg,false);
   }
 }
 
@@ -998,29 +1060,107 @@ document.addEventListener('click', function(e){
   if(action === 'delete') openDeleteModal(id);
 });
 
-/* EXCLUSÃO COM SENHA */
+/* EXCLUSÃO COM SENHA — hash + rate limit (refator de segurança v5.1)
+   NOTA: senha cliente-side é APENAS UX. A proteção real é via Firestore Security
+   Rules (ver firestore.rules). Aqui o hash impede que a senha em texto vaze pelo
+   "View Source", e o rate limit dificulta brute-force por dedo cansado. */
 let deleteTargetId = null;
-const DELETE_PASS = '3251';
+const DELETE_SALT = 'allma_assin_v5::';
+// SHA-256 de (DELETE_SALT + senha). Para trocar a senha, recalcule:
+//   echo -n 'allma_assin_v5::NOVA_SENHA' | shasum -a 256
+const DELETE_PASS_HASH = 'd75ed1ca30acf138edbb238990bfce28adba27c8931d56f93fcd8082922f340e';
+const DELETE_RL_KEY = 'allma_del_rl_v5';
+const DELETE_MAX_FAILS = 5;
+const DELETE_LOCK_MS = 15 * 60 * 1000; // 15 min
+
+async function sha256Hex(text){
+  const buf = new TextEncoder().encode(text);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function delRlGet(){
+  try{ return JSON.parse(localStorage.getItem(DELETE_RL_KEY)||'{}'); }catch(e){ return {}; }
+}
+function delRlSet(o){ try{ localStorage.setItem(DELETE_RL_KEY, JSON.stringify(o)); }catch(e){} }
+function delRlState(){
+  const r = delRlGet();
+  const now = Date.now();
+  if(r.lockUntil && r.lockUntil > now) return {locked:true, msLeft:r.lockUntil-now, fails:r.fails||0};
+  if(r.lockUntil && r.lockUntil <= now){ delRlSet({}); return {locked:false, fails:0}; }
+  return {locked:false, fails:r.fails||0};
+}
+function delRlFail(){
+  const r = delRlGet();
+  const fails = (r.fails||0) + 1;
+  if(fails >= DELETE_MAX_FAILS) delRlSet({fails, lockUntil: Date.now()+DELETE_LOCK_MS});
+  else delRlSet({fails});
+}
+function delRlReset(){ delRlSet({}); }
+function fmtMs(ms){
+  const m = Math.ceil(ms/60000);
+  return m>1 ? (m+' min') : '1 min';
+}
+
 function openDeleteModal(id){
   deleteTargetId = id;
   document.getElementById('del-id-label').textContent = id;
   document.getElementById('del-senha').value = '';
-  document.getElementById('del-err').style.display = 'none';
+  const errEl = document.getElementById('del-err');
+  errEl.style.display = 'none';
+  errEl.textContent = '';
   document.getElementById('del-overlay').style.display = 'flex';
-  setTimeout(()=>document.getElementById('del-senha').focus(), 100);
+  // Se estiver bloqueado, mostra aviso já ao abrir
+  const st = delRlState();
+  if(st.locked){
+    errEl.textContent = `Muitas tentativas erradas. Tente novamente em ${fmtMs(st.msLeft)}.`;
+    errEl.style.display = 'block';
+    document.getElementById('del-senha').disabled = true;
+  } else {
+    document.getElementById('del-senha').disabled = false;
+  }
+  setTimeout(()=>{const s=document.getElementById('del-senha'); if(!s.disabled) s.focus();}, 100);
 }
 function closeDeleteModal(){
   document.getElementById('del-overlay').style.display = 'none';
   deleteTargetId = null;
 }
-function confirmDelete(){
+async function confirmDelete(){
+  const errEl = document.getElementById('del-err');
+  // 1. Verifica rate limit antes de comparar hash
+  const st = delRlState();
+  if(st.locked){
+    errEl.textContent = `Bloqueado por excesso de tentativas. Aguarde ${fmtMs(st.msLeft)}.`;
+    errEl.style.display = 'block';
+    return;
+  }
   const senha = document.getElementById('del-senha').value;
-  if(senha !== DELETE_PASS){
-    document.getElementById('del-err').style.display = 'block';
+  if(!senha){ errEl.textContent = 'Informe a senha.'; errEl.style.display = 'block'; return; }
+  // 2. Hash + compara
+  let hashIn;
+  try { hashIn = await sha256Hex(DELETE_SALT + senha); }
+  catch(e){
+    errEl.textContent = 'Erro ao validar senha (navegador antigo?). Recarregue a página.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if(hashIn !== DELETE_PASS_HASH){
+    delRlFail();
+    const after = delRlState();
+    if(after.locked){
+      errEl.textContent = `Muitas tentativas. Bloqueado por ${fmtMs(after.msLeft)}.`;
+      document.getElementById('del-senha').disabled = true;
+    } else {
+      const restantes = DELETE_MAX_FAILS - after.fails;
+      errEl.textContent = `Senha incorreta. ${restantes} tentativa(s) restante(s).`;
+    }
+    errEl.style.display = 'block';
     document.getElementById('del-senha').value = '';
     document.getElementById('del-senha').focus();
     return;
   }
+  // 3. Sucesso → reseta contador e executa exclusão
+  delRlReset();
   const idExcluido = deleteTargetId;
   closeDeleteModal();
   fbDelete(idExcluido);
@@ -1102,12 +1242,16 @@ async function salvarRelatorio(){
   };
   const docId=data+'_'+(resp.split(' ')[0]);
   try{
+    await ensureAuth();
     await db.collection(COL_REL).doc(docId).set(rd);
     showSuccess('Relatório salvo!');
     gerarPreview();
     carregarHistorico();
   }catch(e){
-    alert('Erro ao salvar: '+e.message);
+    const msg = (e && e.code==='permission-denied')
+      ? 'Sem permissão para salvar relatório. Verifique as regras Firestore.'
+      : 'Erro ao salvar: '+e.message;
+    alert(msg);
   }
 }
 
@@ -1252,12 +1396,23 @@ if(rdDataEl)rdDataEl.value=new Date().toISOString().split('T')[0];
 buildPeriodFilter();
 document.getElementById('lastupd').textContent='Aberto em '+new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
 // Tenta carregar do cache local enquanto Firebase conecta
-if(loadLS()&&contratos.length>0){updSrcLbl();updFF();init();fbStatus('conectando...',true);}
+if(loadLS()&&contratos.length>0){updSrcLbl();updFF();init();}
 else{document.getElementById('src-lbl').innerHTML='<i class="ti ti-cloud"></i> Conectando ao Firebase...';}
-// Inicia sincronização em tempo real
-startRealtimeSync();
-// Carrega histórico de relatórios
-setTimeout(carregarHistorico, 1500);
+
+// FASE 2: autentica anonimamente ANTES de abrir o stream em tempo real.
+// Se Auth falhar (ex: Anonymous Auth desativado no Console), ainda assim
+// tentamos o sync — a leitura segue aberta nas regras, então o dashboard
+// pelo menos exibe os dados; apenas escritas vão falhar com permission-denied.
+ensureAuth()
+  .then(()=>{
+    startRealtimeSync();
+    setTimeout(carregarHistorico, 800);
+  })
+  .catch(err=>{
+    console.warn('Auth falhou — operando em modo somente-leitura:', err && err.code);
+    startRealtimeSync();
+    setTimeout(carregarHistorico, 800);
+  });
 </script>
 </body>
 </html>
