@@ -212,7 +212,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
     <p class="sec-t" style="margin-top:.5rem">Relatórios diários</p>
     <div class="cards" id="cards-relat">
       <div class="card"><div class="lbl">Total de atendimentos</div><div class="val" id="k-atend">—</div><div class="sub">no período</div></div>
-      <div class="card"><div class="lbl">Taxa de conversão</div><div class="val" id="k-conv">—</div><div class="sub">atendimentos → assinados</div></div>
+      <div class="card" id="card-conv" onclick="abrirDrillConversao()" title="Clique para ver os registros que compõem a conversão" style="cursor:pointer;position:relative"><div class="lbl">Taxa de conversão</div><div class="val" id="k-conv">—</div><div class="sub">atendimentos → assinados <i class="ti ti-arrow-right-circle" style="font-size:11px;vertical-align:middle;margin-left:3px;color:var(--t3)"></i></div></div>
       <div class="card"><div class="lbl">Média diária</div><div class="val" id="k-media-dia">—</div><div class="sub">novos atendimentos/dia</div></div>
       <div class="card" style="border-color:rgba(226,75,74,.25);background:var(--dbg)"><div class="lbl" style="color:var(--dtx)">Reprovados crédito</div><div class="val" id="k-reprov" style="color:var(--dtx)">—</div><div class="sub" style="color:var(--dtx)">no período</div></div>
     </div>
@@ -269,7 +269,16 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
         <div class="fg-grid">
           <div class="fg"><label>Data prevista de entrega</label><input id="f-entprev" type="date"></div>
           <div class="fg"><label>Data efetiva de entrega</label><input id="f-entef" type="date"></div>
-          <div class="fg"><label>Tipo de entrega</label><input id="f-tipent" placeholder="Ex: Concessionária"></div>
+          <div class="fg"><label>Tipo de entrega</label>
+            <select id="f-tipent" onchange="toggleTipoEntrega(this)">
+              <option value="">Selecione...</option>
+              <option value="PDV do Grupo">PDV do Grupo</option>
+              <option value="PDV Externo">PDV Externo</option>
+            </select>
+          </div>
+          <div class="fg" id="fg-tipent-ext" style="display:none"><label>Nome do PDV externo</label>
+            <input id="f-tipent-ext" placeholder="Informe o local ou nome do PDV externo">
+          </div>
           <div class="fg"><label>Local da entrega</label>
             <select id="f-locent"><option value="">Selecione...</option></select>
           </div>
@@ -277,7 +286,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
       </div>
       <div class="fsec"><div class="fsec-t">Origem</div>
         <div class="fg-grid">
-          <div class="fg"><label>Origem / Mídia</label><select id="f-midia"><option value="">Selecione...</option><option>Instagram</option><option>Facebook</option><option>Google</option><option>WhatsApp</option><option>Indicação</option><option>Site</option><option>Outro</option></select></div>
+          <div class="fg"><label>Origem / Mídia</label><select id="f-midia"><option value="">Selecione...</option><option>Montadora</option><option>Digital</option><option>Indicação</option><option>Outro</option></select></div>
         </div>
         <label class="check-row"><input type="checkbox" id="cb-ind" onchange="toggleInd()"><span>É uma indicação?</span></label>
         <div id="ind-fields" style="display:none" class="ind-box">
@@ -423,7 +432,8 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
         <input id="em-valor" type="text" inputmode="decimal" placeholder="Ex: 2.999,00" oninput="maskBRL(this)" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit">
         <span style="font-size:10px;color:var(--t3);margin-top:2px;display:block">Formato: 2.999,00</span></div>
       <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Comissão (%)</label>
-        <input id="em-com" type="number" min="0" step="0.1" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit"></div>
+        <input id="em-com" type="number" min="0" step="0.1" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit">
+        <span style="font-size:10px;color:var(--t3);margin-top:3px;display:block;line-height:1.5">Padrão PF: <strong style="color:var(--t2)">Sign &amp; Drive 8%</strong> · <strong style="color:var(--t2)">FLUA 7%</strong> · <strong style="color:var(--t2)">BYD+ 6%</strong> · <strong style="color:var(--t2)">Assine Car 8%</strong></span></div>
       <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Qtd. veículos</label>
         <input id="em-qtd" type="number" min="1" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit"></div>
       <div style="grid-column:span 2;font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);padding-bottom:6px;border-bottom:0.5px solid var(--b1);margin-top:4px">Cliente</div>
@@ -435,6 +445,8 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
       <div style="grid-column:span 2;font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);padding-bottom:6px;border-bottom:0.5px solid var(--b1);margin-top:4px">Veículo</div>
       <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Modelo / Versão *</label>
         <input id="em-modelo" type="text" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit"></div>
+      <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Chassi</label>
+        <input id="em-chassi" type="text" placeholder="Número do chassi" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit"></div>
       <div><label style="display:block;font-size:11px;color:var(--t2);margin-bottom:4px;font-weight:500">Placa</label>
         <input id="em-placa" type="text" style="width:100%;font-size:12px;padding:6px 9px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);font-family:inherit"></div>
 
@@ -450,6 +462,26 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
     <div style="display:flex;gap:8px;justify-content:flex-end;padding:14px 20px;border-top:0.5px solid var(--b1)">
       <button onclick="fecharModalEdit()" style="padding:7px 16px;border-radius:var(--rmd);border:0.5px solid var(--b2);font-size:12px;cursor:pointer;background:var(--bg1);color:var(--t1);font-family:inherit;display:inline-flex;align-items:center;gap:5px"><i class="ti ti-x"></i> Cancelar</button>
       <button onclick="salvarModalEdit()" style="padding:7px 16px;border-radius:var(--rmd);border:0.5px solid #1D9E75;font-size:12px;cursor:pointer;background:#1D9E75;color:#fff;font-family:inherit;display:inline-flex;align-items:center;gap:5px"><i class="ti ti-device-floppy"></i> Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DRILL-DOWN TAXA DE CONVERSÃO -->
+<div id="drill-conv-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 12px">
+  <div style="background:var(--bg1);border-radius:var(--rlg);width:100%;max-width:880px;border:0.5px solid var(--b2);margin:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:0.5px solid var(--b1)">
+      <div style="font-size:14px;font-weight:600;color:var(--t1);display:flex;align-items:center;gap:8px">
+        <i class="ti ti-chart-arcs" style="color:var(--ok)"></i> Detalhamento da Taxa de Conversão
+        <span id="drill-conv-period" style="font-size:11px;color:var(--t3);font-weight:400;margin-left:6px"></span>
+      </div>
+      <button onclick="fecharDrillConversao()" style="background:none;border:none;cursor:pointer;color:var(--t2);font-size:18px;padding:4px"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="drill-conv-summary" style="padding:14px 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;border-bottom:0.5px solid var(--b1)"></div>
+    <div style="padding:14px 20px;max-height:60vh;overflow-y:auto">
+      <div id="drill-conv-body"></div>
+    </div>
+    <div style="padding:12px 20px;border-top:0.5px solid var(--b1);font-size:11px;color:var(--t3);line-height:1.5">
+      <i class="ti ti-info-circle"></i> A taxa = (contratos assinados / novos atendimentos) × 100, somando todos os relatórios diários do período selecionado.
     </div>
   </div>
 </div>
@@ -988,7 +1020,14 @@ function openEdit(id){const c=contratos.find(x=>String(x.id)===String(id));if(!c
 // f-valor é type=text, formatar como BRL
 const elValor=document.getElementById('f-valor');
 if(elValor)elValor.value=c.valorMensal?c.valorMensal.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
-setFV('f-com',c.comissaoPct);setFV('f-qtd',c.qtdCarros||1);setFV('f-resp',c.responsavel);setFV('f-cliente',c.cliente);setFV('f-cpf',c.cpf);setFV('f-modelo',c.modelo);setFV('f-chassi',c.chassi);setFV('f-placa',c.placa);setFV('f-cor',c.cor||'');setFV('f-entprev',c.dataPrevEntrega||'');setFV('f-entef',c.entregaEfetiva||'');setFV('f-tipent',c.tipoEntrega||'');setFV('f-locent',c.localEntrega||'');setFV('f-midia',c.midia);document.getElementById('cb-ind').checked=!!c.indicacao;document.getElementById('ind-fields').style.display=c.indicacao?'block':'none';if(c.indicacao){setFV('f-ind-nome',c.nomeIndicador||'');setFV('f-ind-casa',c.casaIndicacao||'');}setFV('f-obs',c.observacoes||'');document.getElementById('edit-mode-bar').style.display='flex';document.getElementById('edit-id-label').textContent=id;document.getElementById('btn-save').innerHTML='<i class="ti ti-refresh"></i> Atualizar contrato';swTabById('cadastro');
+setFV('f-com',c.comissaoPct);setFV('f-qtd',c.qtdCarros||1);setFV('f-resp',c.responsavel);setFV('f-cliente',c.cliente);setFV('f-cpf',c.cpf);setFV('f-modelo',c.modelo);setFV('f-chassi',c.chassi);setFV('f-placa',c.placa);setFV('f-cor',c.cor||'');setFV('f-entprev',c.dataPrevEntrega||'');setFV('f-entef',c.entregaEfetiva||'');
+// Tipo de Entrega: aceita valor antigo (texto livre) mapeando para PDV Externo
+const _tipentRaw=c.tipoEntrega||'';
+const _tipentNorm=(_tipentRaw==='PDV do Grupo'||_tipentRaw==='PDV Externo')?_tipentRaw:(_tipentRaw?'PDV Externo':'');
+setFV('f-tipent',_tipentNorm);
+setFV('f-tipent-ext',_tipentNorm==='PDV Externo'?(c.tipoEntregaExterno||_tipentRaw||''):'');
+document.getElementById('fg-tipent-ext').style.display=_tipentNorm==='PDV Externo'?'block':'none';
+setFV('f-locent',c.localEntrega||'');setFV('f-midia',c.midia);document.getElementById('cb-ind').checked=!!c.indicacao;document.getElementById('ind-fields').style.display=c.indicacao?'block':'none';if(c.indicacao){setFV('f-ind-nome',c.nomeIndicador||'');setFV('f-ind-casa',c.casaIndicacao||'');}setFV('f-obs',c.observacoes||'');document.getElementById('edit-mode-bar').style.display='flex';document.getElementById('edit-id-label').textContent=id;document.getElementById('btn-save').innerHTML='<i class="ti ti-refresh"></i> Atualizar contrato';swTabById('cadastro');
 // Aguarda render e rola para o banner de edição
 setTimeout(()=>{
   const bar=document.getElementById('edit-mode-bar');
@@ -1001,10 +1040,11 @@ function cancelEdit(){editId=null;clearForm();document.getElementById('edit-mode
 /* FORMULÁRIO */
 function toggleInd(){document.getElementById('ind-fields').style.display=document.getElementById('cb-ind').checked?'block':'none';}
 function toggleOutroForn(sel){document.getElementById('fg-outro').style.display=sel.value==='Outro'?'block':'none';}
-const FORM_IDS=['f-id','f-forn','f-forn-outro','f-tipo','f-status','f-prazo','f-assin','f-valor','f-com','f-qtd','f-resp','f-cliente','f-cpf','f-modelo','f-chassi','f-placa','f-cor','f-entprev','f-entef','f-tipent','f-locent','f-midia','f-ind-nome','f-ind-casa','f-obs'];
-function clearForm(){FORM_IDS.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});const qtd=document.getElementById('f-qtd');if(qtd)qtd.value='1';document.getElementById('cb-ind').checked=false;document.getElementById('ind-fields').style.display='none';document.getElementById('fg-outro').style.display='none';}
+function toggleTipoEntrega(sel){const box=document.getElementById('fg-tipent-ext');if(box)box.style.display=sel.value==='PDV Externo'?'block':'none';if(sel.value!=='PDV Externo'){const ext=document.getElementById('f-tipent-ext');if(ext)ext.value='';}}
+const FORM_IDS=['f-id','f-forn','f-forn-outro','f-tipo','f-status','f-prazo','f-assin','f-valor','f-com','f-qtd','f-resp','f-cliente','f-cpf','f-modelo','f-chassi','f-placa','f-cor','f-entprev','f-entef','f-tipent','f-tipent-ext','f-locent','f-midia','f-ind-nome','f-ind-casa','f-obs'];
+function clearForm(){FORM_IDS.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});const qtd=document.getElementById('f-qtd');if(qtd)qtd.value='1';document.getElementById('cb-ind').checked=false;document.getElementById('ind-fields').style.display='none';document.getElementById('fg-outro').style.display='none';const tex=document.getElementById('fg-tipent-ext');if(tex)tex.style.display='none';}
 function fgv(id){const el=document.getElementById(id);return el?el.value.trim():'';}
-function saveContrato(){const cliente=fgv('f-cliente'),modelo=fgv('f-modelo'),tipo=fgv('f-tipo'),status=fgv('f-status');const prazo=parseInt(fgv('f-prazo'))||0,valor=pNum(fgv('f-valor')),assin=fgv('f-assin');let forn=fgv('f-forn');if(forn==='Outro')forn=fgv('f-forn-outro')||'Outro';const erros=[];if(!cliente)erros.push('Nome do cliente');if(!modelo)erros.push('Modelo');if(!forn||forn==='')erros.push('Fornecedor');if(!tipo)erros.push('Tipo de pessoa');if(!status)erros.push('Status');if(!prazo)erros.push('Prazo');if(!valor)erros.push('Valor mensal');if(!assin)erros.push('Data de assinatura');if(erros.length){alert('Campos obrigatórios:\n• '+erros.join('\n• '));return;}const isInd=document.getElementById('cb-ind').checked;const obj={id:editId||fgv('f-id')||('ASS-'+String(contratos.length+1).padStart(3,'0')),cliente,cpf:fgv('f-cpf'),chassi:fgv('f-chassi'),modelo:normModel(modelo),assinatura:assin,prazo,entregaEfetiva:fgv('f-entef')||assin,valorMensal:valor,fornecedor:forn,tipo,comissaoPct:parseFloat(fgv('f-com'))||0,status,responsavel:fgv('f-resp'),midia:fgv('f-midia'),placa:fgv('f-placa'),cor:fgv('f-cor'),tipoEntrega:fgv('f-tipent'),localEntrega:fgv('f-locent'),dataPrevEntrega:fgv('f-entprev'),qtdCarros:parseInt(fgv('f-qtd'))||1,indicacao:isInd,nomeIndicador:isInd?fgv('f-ind-nome'):'',casaIndicacao:isInd?fgv('f-ind-casa'):'',observacoes:fgv('f-obs'),};if(editId){showSuccess('Contrato '+editId+' atualizado!');}else{showSuccess('Contrato '+obj.id+' cadastrado!');}
+function saveContrato(){const cliente=fgv('f-cliente'),modelo=fgv('f-modelo'),tipo=fgv('f-tipo'),status=fgv('f-status');const prazo=parseInt(fgv('f-prazo'))||0,valor=pNum(fgv('f-valor')),assin=fgv('f-assin');let forn=fgv('f-forn');if(forn==='Outro')forn=fgv('f-forn-outro')||'Outro';const erros=[];if(!cliente)erros.push('Nome do cliente');if(!modelo)erros.push('Modelo');if(!forn||forn==='')erros.push('Fornecedor');if(!tipo)erros.push('Tipo de pessoa');if(!status)erros.push('Status');if(!prazo)erros.push('Prazo');if(!valor)erros.push('Valor mensal');if(!assin)erros.push('Data de assinatura');if(erros.length){alert('Campos obrigatórios:\n• '+erros.join('\n• '));return;}const isInd=document.getElementById('cb-ind').checked;const obj={id:editId||fgv('f-id')||('ASS-'+String(contratos.length+1).padStart(3,'0')),cliente,cpf:fgv('f-cpf'),chassi:fgv('f-chassi'),modelo:normModel(modelo),assinatura:assin,prazo,entregaEfetiva:fgv('f-entef')||assin,valorMensal:valor,fornecedor:forn,tipo,comissaoPct:parseFloat(fgv('f-com'))||0,status,responsavel:fgv('f-resp'),midia:fgv('f-midia'),placa:fgv('f-placa'),cor:fgv('f-cor'),tipoEntrega:fgv('f-tipent'),tipoEntregaExterno:fgv('f-tipent')==='PDV Externo'?fgv('f-tipent-ext'):'',localEntrega:fgv('f-locent'),dataPrevEntrega:fgv('f-entprev'),qtdCarros:parseInt(fgv('f-qtd'))||1,indicacao:isInd,nomeIndicador:isInd?fgv('f-ind-nome'):'',casaIndicacao:isInd?fgv('f-ind-casa'):'',observacoes:fgv('f-obs'),};if(editId){showSuccess('Contrato '+editId+' atualizado!');}else{showSuccess('Contrato '+obj.id+' cadastrado!');}
 cancelEdit();
 fbSave(obj);  // Salva no Firestore (listener vai atualizar tudo automaticamente)
 }
@@ -1040,6 +1080,7 @@ function abrirModalEdit(id){
   emSet('em-cliente', cont.cliente);
   emSet('em-cpf', cont.cpf||'');
   emSet('em-modelo', cont.modelo);
+  emSet('em-chassi', cont.chassi||'');
   emSet('em-placa', cont.placa||'');
   emSet('em-entef', cont.entregaEfetiva||'');
   emSet('em-locent', cont.localEntrega||'');
@@ -1095,6 +1136,7 @@ function salvarModalEdit(){
     qtdCarros:parseInt(emVal('em-qtd'))||1,
     responsavel:emVal('em-resp'),
     cpf:emVal('em-cpf'),
+    chassi:emVal('em-chassi'),
     placa:emVal('em-placa'),
     localEntrega:emVal('em-locent'),
     observacoes:emVal('em-obs'),
@@ -1458,6 +1500,77 @@ function buildAnaliticoRelat(){
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.raw}}},
     scales:{x:{grid:{display:false},ticks:{font:{size:9}}},y:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:9},stepSize:1}},stacked:true}}});
 }
+
+/* DRILL-DOWN TAXA DE CONVERSÃO */
+function abrirDrillConversao(){
+  const overlay=document.getElementById('drill-conv-overlay');
+  if(!overlay)return;
+  const periodTag=document.getElementById('drill-conv-period');
+  let rFilt=relatorios||[];
+  if(selectedPeriod){
+    rFilt=rFilt.filter(r=>(r.data||'').startsWith(selectedPeriod));
+    if(periodTag)periodTag.textContent='· Período: '+selectedPeriod;
+  }else{
+    if(periodTag)periodTag.textContent='· Todos os períodos';
+  }
+  const totalAtend=rFilt.reduce((s,r)=>s+(r.novos||0),0);
+  const totalAssin=rFilt.reduce((s,r)=>s+(r.assinado||0),0);
+  const conv=totalAtend>0?Math.round(totalAssin/totalAtend*100):0;
+  // Summary boxes
+  const sumEl=document.getElementById('drill-conv-summary');
+  if(sumEl){
+    sumEl.innerHTML=`
+      <div style="background:var(--bg2);border-radius:var(--rmd);padding:10px 12px;border:0.5px solid var(--b1)"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em">Novos atendimentos</div><div style="font-size:20px;font-weight:600;color:var(--t1);margin-top:2px">${totalAtend}</div></div>
+      <div style="background:var(--sbg);border-radius:var(--rmd);padding:10px 12px;border:0.5px solid var(--sbr)"><div style="font-size:10px;color:var(--stx);text-transform:uppercase;letter-spacing:.06em">Contratos assinados</div><div style="font-size:20px;font-weight:600;color:var(--stx);margin-top:2px">${totalAssin}</div></div>
+      <div style="background:var(--bg2);border-radius:var(--rmd);padding:10px 12px;border:0.5px solid var(--b1)"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em">Taxa de conversão</div><div style="font-size:20px;font-weight:600;color:var(--ok);margin-top:2px">${conv}%</div></div>
+    `;
+  }
+  // Linhas
+  const bodyEl=document.getElementById('drill-conv-body');
+  if(!rFilt.length){
+    bodyEl.innerHTML='<p style="color:var(--t3);font-size:12px;text-align:center;padding:20px 0">Nenhum relatório no período selecionado.</p>';
+  }else{
+    // Ordenar por data desc, dentro do dia por responsável
+    const sorted=[...rFilt].sort((a,b)=>(b.data||'').localeCompare(a.data||'')||(a.responsavel||'').localeCompare(b.responsavel||''));
+    let html=`<table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr style="background:var(--bg2)">
+        <th style="text-align:left;padding:7px 8px;border-bottom:0.5px solid var(--b1);font-weight:600;color:var(--t2)">Data</th>
+        <th style="text-align:left;padding:7px 8px;border-bottom:0.5px solid var(--b1);font-weight:600;color:var(--t2)">Responsável</th>
+        <th style="text-align:center;padding:7px 8px;border-bottom:0.5px solid var(--b1);font-weight:600;color:var(--t2)">Novos</th>
+        <th style="text-align:center;padding:7px 8px;border-bottom:0.5px solid var(--b1);font-weight:600;color:var(--stx)">Assinados</th>
+        <th style="text-align:center;padding:7px 8px;border-bottom:0.5px solid var(--b1);font-weight:600;color:var(--ok)">Conv.</th>
+        <th style="text-align:left;padding:7px 8px;border-bottom:0.5px solid var(--b1);font-weight:600;color:var(--t2)">IDs / Observação dos assinados</th>
+      </tr></thead><tbody>`;
+    sorted.forEach(r=>{
+      const n=r.novos||0, a=r.assinado||0;
+      const pct=n>0?Math.round(a/n*100):0;
+      const dt=r.data?(()=>{const[y,m,d]=r.data.split('-');return d+'/'+m+'/'+y;})():'—';
+      const ids=r.assinadoIds?String(r.assinadoIds).trim():'';
+      const idsHtml=ids?`<span style="color:var(--t1)">${ids.replace(/</g,'&lt;')}</span>`:'<span style="color:var(--t3);font-style:italic">— sem IDs informados</span>';
+      const rowBg=a>0?'background:rgba(29,158,117,.04)':'';
+      html+=`<tr style="${rowBg}">
+        <td style="padding:7px 8px;border-bottom:0.5px solid var(--b1);color:var(--t2);white-space:nowrap">${dt}</td>
+        <td style="padding:7px 8px;border-bottom:0.5px solid var(--b1);color:var(--t1)">${(r.responsavel||'—').replace(/</g,'&lt;')}</td>
+        <td style="padding:7px 8px;border-bottom:0.5px solid var(--b1);text-align:center;color:var(--t1);font-weight:600">${n}</td>
+        <td style="padding:7px 8px;border-bottom:0.5px solid var(--b1);text-align:center;color:var(--stx);font-weight:600">${a}</td>
+        <td style="padding:7px 8px;border-bottom:0.5px solid var(--b1);text-align:center;color:var(--ok);font-weight:600">${pct}%</td>
+        <td style="padding:7px 8px;border-bottom:0.5px solid var(--b1);color:var(--t2);font-size:11px">${idsHtml}</td>
+      </tr>`;
+    });
+    html+='</tbody></table>';
+    bodyEl.innerHTML=html;
+  }
+  overlay.style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function fecharDrillConversao(){
+  const o=document.getElementById('drill-conv-overlay');
+  if(o)o.style.display='none';
+  document.body.style.overflow='';
+}
+// Fechar com ESC ou clique fora do conteúdo
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const o=document.getElementById('drill-conv-overlay');if(o&&o.style.display==='flex')fecharDrillConversao();}});
+document.addEventListener('click',e=>{const o=document.getElementById('drill-conv-overlay');if(o&&e.target===o)fecharDrillConversao();});
 
 /* ABAS */
 function swTab(tab,btn){
