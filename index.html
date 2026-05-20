@@ -107,7 +107,6 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
     <button class="btn" onclick="document.getElementById('file-input').click()"><i class="ti ti-upload"></i> Importar</button>
     <button class="btn btnr" onclick="exportPDF()"><i class="ti ti-file-type-pdf"></i> PDF</button>
     <button class="btn" onclick="exportXLS()"><i class="ti ti-table-export"></i> Excel</button>
-    <button class="btn btnp" onclick="exportDash()"><i class="ti ti-code"></i> Exportar HTML</button>
     <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleImport(this)">
   </div>
 </header>
@@ -926,27 +925,9 @@ function applyImport(data,fileName){
 /* EXPORTAR EXCEL */
 function exportXLS(){const heads=['ID Contrato','Cliente','CPF/CNPJ','Chassi','Modelo','Data Assinatura','Prazo (meses)','Entrega Efetiva','Valor Mensal R$','Fornecedor','Tipo Pessoa','Comissão %','Comissão R$','Total Plano R$','Status','Responsável','Origem','Desfecho','Placa','Qtd Veículos','% Concluído','Meses Restantes','Local Entrega','Indicação','Nome Indicador','Casa Indicação','Obs'];const rows=contratos.map(c=>[c.id,c.cliente,c.cpf,c.chassi,normModel(c.modelo),c.assinatura,c.prazo,c.entregaEfetiva,c.valorMensal,c.fornecedor,c.tipo,c.comissaoPct,Math.round(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),Math.round(c.valorMensal*(c.prazo||1)),c.status,c.responsavel,c.midia,c.desfecho,c.placa,c.qtdCarros||1,pct(c),mRest(c),c.localEntrega||'',c.indicacao?'Sim':'Não',c.nomeIndicador||'',c.casaIndicacao||'',c.observacoes||'']);const ws=XLSX.utils.aoa_to_sheet([heads,...rows]);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Contratos');XLSX.writeFile(wb,'contratos_allma.xlsx');}
 
-/* EXPORTAR HTML — agora protegido por senha (admin gate)
-   Motivo: a exportação embute todos os contratos como JSON no fonte. Quem
-   recebe o arquivo passa a ter cópia completa dos dados. Tratamos como uma
-   operação sensível, equiparada a editar/excluir. */
-function exportDash(){
-  if(!adminUnlocked){
-    return requireAdmin(
-      'Exportar HTML',
-      'Esta ação gera um arquivo com todos os contratos embutidos. Confirme para prosseguir.',
-      function(){ exportDash(); }
-    );
-  }
-  const src=document.documentElement.outerHTML;
-  const updated=src.replace(/let contratos=\[\];/,'let contratos='+JSON.stringify(contratos)+';');
-  const blob=new Blob([updated],{type:'text/html;charset=utf-8'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='index.html';
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
+/* Exportação de HTML removida em v5.4 a pedido do usuário —
+   embutia todos os contratos como JSON no arquivo, criando rota fácil de
+   vazamento. PDF e Excel continuam como caminhos de exportação suportados. */
 
 /* EXPORTAR PDF v5 */
 function exportPDF(){if(typeof window.jspdf==='undefined'){alert('Aguarde o carregamento completo e tente novamente.');return;}const{jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});const d=getFiltrado();const ativos=d.filter(c=>isAtivo(c));const W=doc.internal.pageSize.getWidth();const hj=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});doc.setFillColor(24,95,165);doc.rect(0,0,W,22,'F');doc.setTextColor(255,255,255);doc.setFontSize(14);doc.setFont('helvetica','bold');doc.text('Grupo Allma Milazzo',14,10);doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text('Resumo Gerencial — Controle de Assinaturas de Veículos',14,16);doc.text(`Gerado: ${hj}${selectedPeriod?' · Período: '+selectedPeriod:''}`,W-14,16,{align:'right'});doc.setTextColor(30,30,30);doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text('INDICADORES GERAIS',14,30);const tp=d.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)),0);const tc=d.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),0);const tv=d.reduce((s,c)=>s+(c.qtdCarros||1),0);doc.autoTable({startY:33,margin:{left:14,right:14},head:[['Indicador','Valor']],body:[['Contratos ativos',ativos.length],['Receita mensal (ativos)','R$ '+Math.round(ativos.reduce((s,c)=>s+c.valorMensal,0)).toLocaleString('pt-BR')],['Total dos planos','R$ '+Math.round(tp).toLocaleString('pt-BR')],['Comissão total indicada','R$ '+Math.round(tc).toLocaleString('pt-BR')],['Qtd. veículos',tv],['Vencem em 60 dias',ativos.filter(c=>mRest(c)<=2).length]],headStyles:{fillColor:[24,95,165],textColor:255,fontStyle:'bold',fontSize:9},bodyStyles:{fontSize:9},alternateRowStyles:{fillColor:[245,245,245]},columnStyles:{0:{cellWidth:100},1:{cellWidth:60,halign:'right'}}});const y1=doc.lastAutoTable.finalY+8;doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text('RESUMO POR FORNECEDOR',14,y1);const fkeys=['FLUA','SIGN & DRIVE','BYD MAIS','ASSINE CAR','Outro'];doc.autoTable({startY:y1+3,margin:{left:14,right:14},head:[['Fornecedor','Contratos','Total Planos','Comissão']],body:fkeys.map(k=>{const g=d.filter(c=>fornGroup(c)===k);return[k,g.length,'R$ '+Math.round(g.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)),0)).toLocaleString('pt-BR'),'R$ '+Math.round(g.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),0)).toLocaleString('pt-BR')];}),headStyles:{fillColor:[24,95,165],textColor:255,fontStyle:'bold',fontSize:9},bodyStyles:{fontSize:9},alternateRowStyles:{fillColor:[245,245,245]}});const y2=doc.lastAutoTable.finalY+8;doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text('RESUMO POR RESPONSÁVEL',14,y2);const resps=[...new Set(d.map(c=>c.responsavel||'Não informado'))].sort();doc.autoTable({startY:y2+3,margin:{left:14,right:14},head:[['Responsável','Contratos','Ativos','Total Planos']],body:resps.map(r=>{const g=d.filter(c=>(c.responsavel||'Não informado')===r);return[r,g.length,g.filter(c=>isAtivo(c)).length,'R$ '+Math.round(g.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)),0)).toLocaleString('pt-BR')];}),headStyles:{fillColor:[24,95,165],textColor:255,fontStyle:'bold',fontSize:9},bodyStyles:{fontSize:9},alternateRowStyles:{fillColor:[245,245,245]}});doc.addPage();doc.setFillColor(24,95,165);doc.rect(0,0,W,14,'F');doc.setTextColor(255,255,255);doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text('LISTA DE CONTRATOS',14,9);doc.setTextColor(30,30,30);doc.autoTable({startY:18,margin:{left:8,right:8},head:[['ID','Cliente','Modelo','Prazo','Mensalidade','Total','Status','Resp.']],body:d.map(c=>[c.id,c.cliente.substring(0,20)+(c.cliente.length>20?'...':''),normModel(c.modelo).substring(0,16),c.prazo+'m','R$ '+Math.round(c.valorMensal).toLocaleString('pt-BR'),'R$ '+Math.round(c.valorMensal*(c.prazo||1)).toLocaleString('pt-BR'),c.status==='Ativo'?'Assinado':c.status,(c.responsavel||'').split(' ')[0]]),headStyles:{fillColor:[24,95,165],textColor:255,fontStyle:'bold',fontSize:8},bodyStyles:{fontSize:8},alternateRowStyles:{fillColor:[245,245,245]},columnStyles:{0:{cellWidth:20},1:{cellWidth:42},2:{cellWidth:32},3:{cellWidth:14},4:{cellWidth:24},5:{cellWidth:26},6:{cellWidth:22},7:{cellWidth:16}}});const np=doc.internal.getNumberOfPages();for(let p=1;p<=np;p++){doc.setPage(p);doc.setFontSize(8);doc.setTextColor(150,150,150);doc.setFont('helvetica','normal');doc.text(`Allma Milazzo · Confidencial · Pág. ${p} de ${np}`,W/2,290,{align:'center'});}doc.save(`resumo_allma_${hj.replace(/\//g,'-')}.pdf`);}
