@@ -457,20 +457,22 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg2)}tr.rc td{b
   </div>
 </div>
 
-<!-- MODAL EXCLUSÃO -->
+<!-- MODAL DE CONFIRMAÇÃO DE SENHA (admin gate genérico — usado por editar/excluir/exportar) -->
 <div id="del-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center">
-  <div style="background:var(--bg1);border-radius:var(--rlg);padding:24px;max-width:340px;width:90%;border:0.5px solid var(--b2)">
-    <div style="font-size:14px;font-weight:600;color:var(--t1);margin-bottom:6px"><i class="ti ti-trash" style="color:#E24B4A"></i> Excluir contrato</div>
-    <div style="font-size:12px;color:var(--t2);margin-bottom:14px">Contrato: <strong id="del-id-label"></strong><br>Esta ação não pode ser desfeita.</div>
+  <div style="background:var(--bg1);border-radius:var(--rlg);padding:24px;max-width:360px;width:90%;border:0.5px solid var(--b2)">
+    <div id="del-title" style="font-size:14px;font-weight:600;color:var(--t1);margin-bottom:6px"><i class="ti ti-shield-lock" style="color:var(--ok)"></i> <span id="del-action-title">Confirmação de senha</span></div>
+    <div id="del-sub" style="font-size:12px;color:var(--t2);margin-bottom:14px"><span id="del-action-sub">Esta ação requer confirmação.</span></div>
     <div style="font-size:11px;color:var(--t2);margin-bottom:6px;font-weight:500">Digite a senha para confirmar:</div>
-    <input id="del-senha" type="password" placeholder="Senha" style="width:100%;font-size:13px;padding:8px 10px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);margin-bottom:12px;font-family:inherit" onkeydown="if(event.key==='Enter')confirmDelete()">
+    <input id="del-senha" type="password" placeholder="Senha" style="width:100%;font-size:13px;padding:8px 10px;border-radius:var(--rmd);border:0.5px solid var(--b2);background:var(--bg1);color:var(--t1);margin-bottom:12px;font-family:inherit" onkeydown="if(event.key==='Enter')confirmAdmin()">
     <div id="del-err" style="font-size:11px;color:#E24B4A;margin-bottom:10px;display:none">Senha incorreta.</div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button class="btn" onclick="closeDeleteModal()"><i class="ti ti-x"></i> Cancelar</button>
-      <button class="btn" style="background:#E24B4A;color:#fff;border-color:#E24B4A" onclick="confirmDelete()"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn" onclick="closeAdminModal()"><i class="ti ti-x"></i> Cancelar</button>
+      <button id="del-confirm-btn" class="btn" style="background:var(--ok);color:#fff;border-color:var(--ok)" onclick="confirmAdmin()"><i class="ti ti-check"></i> Confirmar</button>
     </div>
   </div>
 </div>
+<!-- compat: badge "modo admin ativo" no header pode ser adicionado depois -->
+
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -924,8 +926,27 @@ function applyImport(data,fileName){
 /* EXPORTAR EXCEL */
 function exportXLS(){const heads=['ID Contrato','Cliente','CPF/CNPJ','Chassi','Modelo','Data Assinatura','Prazo (meses)','Entrega Efetiva','Valor Mensal R$','Fornecedor','Tipo Pessoa','Comissão %','Comissão R$','Total Plano R$','Status','Responsável','Origem','Desfecho','Placa','Qtd Veículos','% Concluído','Meses Restantes','Local Entrega','Indicação','Nome Indicador','Casa Indicação','Obs'];const rows=contratos.map(c=>[c.id,c.cliente,c.cpf,c.chassi,normModel(c.modelo),c.assinatura,c.prazo,c.entregaEfetiva,c.valorMensal,c.fornecedor,c.tipo,c.comissaoPct,Math.round(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),Math.round(c.valorMensal*(c.prazo||1)),c.status,c.responsavel,c.midia,c.desfecho,c.placa,c.qtdCarros||1,pct(c),mRest(c),c.localEntrega||'',c.indicacao?'Sim':'Não',c.nomeIndicador||'',c.casaIndicacao||'',c.observacoes||'']);const ws=XLSX.utils.aoa_to_sheet([heads,...rows]);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Contratos');XLSX.writeFile(wb,'contratos_allma.xlsx');}
 
-/* EXPORTAR HTML */
-function exportDash(){const src=document.documentElement.outerHTML;const updated=src.replace(/let contratos=\[\];/,'let contratos='+JSON.stringify(contratos)+';');const blob=new Blob([updated],{type:'text/html;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='index.html';a.click();URL.revokeObjectURL(a.href);}
+/* EXPORTAR HTML — agora protegido por senha (admin gate)
+   Motivo: a exportação embute todos os contratos como JSON no fonte. Quem
+   recebe o arquivo passa a ter cópia completa dos dados. Tratamos como uma
+   operação sensível, equiparada a editar/excluir. */
+function exportDash(){
+  if(!adminUnlocked){
+    return requireAdmin(
+      'Exportar HTML',
+      'Esta ação gera um arquivo com todos os contratos embutidos. Confirme para prosseguir.',
+      function(){ exportDash(); }
+    );
+  }
+  const src=document.documentElement.outerHTML;
+  const updated=src.replace(/let contratos=\[\];/,'let contratos='+JSON.stringify(contratos)+';');
+  const blob=new Blob([updated],{type:'text/html;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='index.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
 
 /* EXPORTAR PDF v5 */
 function exportPDF(){if(typeof window.jspdf==='undefined'){alert('Aguarde o carregamento completo e tente novamente.');return;}const{jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});const d=getFiltrado();const ativos=d.filter(c=>isAtivo(c));const W=doc.internal.pageSize.getWidth();const hj=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});doc.setFillColor(24,95,165);doc.rect(0,0,W,22,'F');doc.setTextColor(255,255,255);doc.setFontSize(14);doc.setFont('helvetica','bold');doc.text('Grupo Allma Milazzo',14,10);doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text('Resumo Gerencial — Controle de Assinaturas de Veículos',14,16);doc.text(`Gerado: ${hj}${selectedPeriod?' · Período: '+selectedPeriod:''}`,W-14,16,{align:'right'});doc.setTextColor(30,30,30);doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text('INDICADORES GERAIS',14,30);const tp=d.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)),0);const tc=d.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),0);const tv=d.reduce((s,c)=>s+(c.qtdCarros||1),0);doc.autoTable({startY:33,margin:{left:14,right:14},head:[['Indicador','Valor']],body:[['Contratos ativos',ativos.length],['Receita mensal (ativos)','R$ '+Math.round(ativos.reduce((s,c)=>s+c.valorMensal,0)).toLocaleString('pt-BR')],['Total dos planos','R$ '+Math.round(tp).toLocaleString('pt-BR')],['Comissão total indicada','R$ '+Math.round(tc).toLocaleString('pt-BR')],['Qtd. veículos',tv],['Vencem em 60 dias',ativos.filter(c=>mRest(c)<=2).length]],headStyles:{fillColor:[24,95,165],textColor:255,fontStyle:'bold',fontSize:9},bodyStyles:{fontSize:9},alternateRowStyles:{fillColor:[245,245,245]},columnStyles:{0:{cellWidth:100},1:{cellWidth:60,halign:'right'}}});const y1=doc.lastAutoTable.finalY+8;doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text('RESUMO POR FORNECEDOR',14,y1);const fkeys=['FLUA','SIGN & DRIVE','BYD MAIS','ASSINE CAR','Outro'];doc.autoTable({startY:y1+3,margin:{left:14,right:14},head:[['Fornecedor','Contratos','Total Planos','Comissão']],body:fkeys.map(k=>{const g=d.filter(c=>fornGroup(c)===k);return[k,g.length,'R$ '+Math.round(g.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)),0)).toLocaleString('pt-BR'),'R$ '+Math.round(g.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)*(c.comissaoPct||0)/100),0)).toLocaleString('pt-BR')];}),headStyles:{fillColor:[24,95,165],textColor:255,fontStyle:'bold',fontSize:9},bodyStyles:{fontSize:9},alternateRowStyles:{fillColor:[245,245,245]}});const y2=doc.lastAutoTable.finalY+8;doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text('RESUMO POR RESPONSÁVEL',14,y2);const resps=[...new Set(d.map(c=>c.responsavel||'Não informado'))].sort();doc.autoTable({startY:y2+3,margin:{left:14,right:14},head:[['Responsável','Contratos','Ativos','Total Planos']],body:resps.map(r=>{const g=d.filter(c=>(c.responsavel||'Não informado')===r);return[r,g.length,g.filter(c=>isAtivo(c)).length,'R$ '+Math.round(g.reduce((s,c)=>s+(c.valorMensal*(c.prazo||1)),0)).toLocaleString('pt-BR')];}),headStyles:{fillColor:[24,95,165],textColor:255,fontStyle:'bold',fontSize:9},bodyStyles:{fontSize:9},alternateRowStyles:{fillColor:[245,245,245]}});doc.addPage();doc.setFillColor(24,95,165);doc.rect(0,0,W,14,'F');doc.setTextColor(255,255,255);doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text('LISTA DE CONTRATOS',14,9);doc.setTextColor(30,30,30);doc.autoTable({startY:18,margin:{left:8,right:8},head:[['ID','Cliente','Modelo','Prazo','Mensalidade','Total','Status','Resp.']],body:d.map(c=>[c.id,c.cliente.substring(0,20)+(c.cliente.length>20?'...':''),normModel(c.modelo).substring(0,16),c.prazo+'m','R$ '+Math.round(c.valorMensal).toLocaleString('pt-BR'),'R$ '+Math.round(c.valorMensal*(c.prazo||1)).toLocaleString('pt-BR'),c.status==='Ativo'?'Assinado':c.status,(c.responsavel||'').split(' ')[0]]),headStyles:{fillColor:[24,95,165],textColor:255,fontStyle:'bold',fontSize:8},bodyStyles:{fontSize:8},alternateRowStyles:{fillColor:[245,245,245]},columnStyles:{0:{cellWidth:20},1:{cellWidth:42},2:{cellWidth:32},3:{cellWidth:14},4:{cellWidth:24},5:{cellWidth:26},6:{cellWidth:22},7:{cellWidth:16}}});const np=doc.internal.getNumberOfPages();for(let p=1;p<=np;p++){doc.setPage(p);doc.setFontSize(8);doc.setTextColor(150,150,150);doc.setFont('helvetica','normal');doc.text(`Allma Milazzo · Confidencial · Pág. ${p} de ${np}`,W/2,290,{align:'center'});}doc.save(`resumo_allma_${hj.replace(/\//g,'-')}.pdf`);}
@@ -963,6 +984,14 @@ function emVal(id){const el=emGet(id);return el?el.value.trim():'';}
 function emSet(id,v){const el=emGet(id);if(el)el.value=(v!==undefined&&v!==null)?v:'';}
 
 function abrirModalEdit(id){
+  // Gate: edição só após senha confirmada (uma vez por sessão)
+  if(!adminUnlocked){
+    return requireAdmin(
+      'Editar contrato',
+      `Contrato ${id} — confirme para liberar a edição.`,
+      function(){ abrirModalEdit(id); } // re-entra já destravado
+    );
+  }
   const cont=contratos.find(x=>String(x.id)===String(id));
   if(!cont){alert('Contrato não encontrado: '+id);return;}
   editId=id;
@@ -1060,11 +1089,13 @@ document.addEventListener('click', function(e){
   if(action === 'delete') openDeleteModal(id);
 });
 
-/* EXCLUSÃO COM SENHA — hash + rate limit (refator de segurança v5.1)
-   NOTA: senha cliente-side é APENAS UX. A proteção real é via Firestore Security
-   Rules (ver firestore.rules). Aqui o hash impede que a senha em texto vaze pelo
-   "View Source", e o rate limit dificulta brute-force por dedo cansado. */
-let deleteTargetId = null;
+/* ADMIN GATE — senha protege editar/excluir/exportar (refator v5.3)
+   - Senha confere via hash SHA-256 + salt (texto nunca aparece no fonte)
+   - Rate limit: 5 falhas → bloqueia por 15 min (persiste em localStorage)
+   - Unlock por sessão: digita 1x, libera até fechar a aba ou refresh
+   NOTA: senha cliente-side é APENAS UX. Proteção real é via Firestore Rules. */
+let adminUnlocked = false;            // true após senha correta nesta sessão
+let _adminPendingCallback = null;     // função a executar ao confirmar
 const DELETE_SALT = 'allma_assin_v5::';
 // SHA-256 de (DELETE_SALT + senha). Para trocar a senha, recalcule:
 //   echo -n 'allma_assin_v5::NOVA_SENHA' | shasum -a 256
@@ -1102,15 +1133,22 @@ function fmtMs(ms){
   return m>1 ? (m+' min') : '1 min';
 }
 
-function openDeleteModal(id){
-  deleteTargetId = id;
-  document.getElementById('del-id-label').textContent = id;
+/* Abre o modal de senha. Se já estiver destravado nesta sessão, executa direto.
+   title:    string exibida no topo (ex: "Excluir contrato")
+   subtitle: string descritiva (ex: "Contrato 1234 — esta ação não pode ser desfeita")
+   callback: função a chamar depois de senha correta (sync ou async) */
+function requireAdmin(title, subtitle, callback){
+  // Se já destravado nesta sessão, pula a senha
+  if(adminUnlocked){ try{ callback(); }catch(e){ console.error('admin callback erro:',e); } return; }
+  _adminPendingCallback = callback || null;
+  document.getElementById('del-action-title').textContent = title || 'Confirmação de senha';
+  document.getElementById('del-action-sub').textContent  = subtitle || 'Esta ação requer confirmação.';
   document.getElementById('del-senha').value = '';
   const errEl = document.getElementById('del-err');
   errEl.style.display = 'none';
   errEl.textContent = '';
   document.getElementById('del-overlay').style.display = 'flex';
-  // Se estiver bloqueado, mostra aviso já ao abrir
+  // Se já estiver bloqueado, mostra o aviso de cara
   const st = delRlState();
   if(st.locked){
     errEl.textContent = `Muitas tentativas erradas. Tente novamente em ${fmtMs(st.msLeft)}.`;
@@ -1121,11 +1159,11 @@ function openDeleteModal(id){
   }
   setTimeout(()=>{const s=document.getElementById('del-senha'); if(!s.disabled) s.focus();}, 100);
 }
-function closeDeleteModal(){
+function closeAdminModal(){
   document.getElementById('del-overlay').style.display = 'none';
-  deleteTargetId = null;
+  _adminPendingCallback = null;
 }
-async function confirmDelete(){
+async function confirmAdmin(){
   const errEl = document.getElementById('del-err');
   // 1. Verifica rate limit antes de comparar hash
   const st = delRlState();
@@ -1159,13 +1197,30 @@ async function confirmDelete(){
     document.getElementById('del-senha').focus();
     return;
   }
-  // 3. Sucesso → reseta contador e executa exclusão
+  // 3. Sucesso → destrava sessão, fecha modal e executa callback
   delRlReset();
-  const idExcluido = deleteTargetId;
-  closeDeleteModal();
-  fbDelete(idExcluido);
-  showSuccess('Contrato ' + idExcluido + ' excluído.');
+  adminUnlocked = true;
+  const cb = _adminPendingCallback;
+  closeAdminModal();
+  if(typeof cb === 'function'){
+    try{ await cb(); }catch(e){ console.error('admin callback erro:',e); }
+  }
 }
+
+/* Wrappers que mantêm compatibilidade com chamadas antigas e ligam editar/excluir/exportar ao gate */
+function openDeleteModal(id){
+  requireAdmin(
+    'Excluir contrato',
+    `Contrato ${id} — esta ação não pode ser desfeita.`,
+    function(){
+      fbDelete(id);
+      showSuccess('Contrato ' + id + ' excluído.');
+    }
+  );
+}
+// Mantidos para compat se algum código antigo ainda chamar:
+function closeDeleteModal(){ closeAdminModal(); }
+function confirmDelete(){ return confirmAdmin(); }
 
 /* ====== RELATÓRIO DIÁRIO ====== */
 const COL_REL = 'relatorios';
